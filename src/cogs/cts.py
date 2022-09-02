@@ -116,13 +116,6 @@ class Admin(Cog):
             if stop.name.lower().startswith(current.lower()) or current.lower() in stop.name.lower()
         ][:25]
 
-    @app_commands.command()
-    @app_commands.guilds(GUILD_ID)
-    async def sync_tree(self, inter: Interaction):
-        await inter.response.defer()
-        await self.bot.sync_tree()
-        await inter.edit_original_response(content=f"Tree successfully synchronized.")
-
 
 async def setup(bot: MP2IBot):
     await bot.add_cog(Admin(bot))
