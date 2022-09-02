@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  mybot:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: prod
+    env_file:
+      - .env
+    tty: true
+    restart: always

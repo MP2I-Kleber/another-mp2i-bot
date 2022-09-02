@@ -1,0 +1,4 @@
+bandit
+pyright
+isort
+black

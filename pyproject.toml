@@ -1,0 +1,34 @@
+[tool.tox] # A better implementation is planned. But this avoid to have an additional `tox.ini` file.
+legacy_tox_ini = """
+[tox]
+skipsdist = true
+
+[testenv]
+deps = 
+    -r requirements.txt 
+    -r requirements-dev.txt
+commands =
+    # pytest
+    black --check src/
+    bandit -r src/ tests/ -c pyproject.toml
+    isort ./src/ --check
+    pyright src/
+"""
+
+[tool.bandit.assert_used]
+skips = ["*/test_*.py", "*/test_*.py"]
+
+[tool.pytest.ini_options]
+pythonpath = ". src"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 120
+
+[tool.pyright]
+reportImportCycles = false
