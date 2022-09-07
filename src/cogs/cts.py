@@ -99,7 +99,7 @@ class Admin(Cog):
         for time in sorted(times, key=lambda t: t.arrival):
             fields_payload.setdefault(time.type, "")
 
-            ts: float = time.arrival.timestamp()
+            ts: int = int(time.arrival.timestamp())
             fields_payload[time.type] += f"**{time.line}** -> {time.destination} : <t:{ts}:R>\n"
 
         for name, value in fields_payload.items():
