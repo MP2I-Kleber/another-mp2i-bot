@@ -1,19 +1,19 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
 import logging
+from dataclasses import dataclass
+from datetime import datetime
 from typing import TYPE_CHECKING, Literal, NamedTuple
-from datetime import datetime, timezone
 
-import humanize
+# import humanize
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from discord.utils import get
 
-from utils import response_constructor, ResponseType
+from utils import ResponseType, response_constructor
 from utils.constants import GUILD_ID
+from utils.cts_api import get_stop_times, get_stops
 from utils.errors import BaseError
-from utils.cts_api import get_stops, get_stop_times
 
 if TYPE_CHECKING:
     from discord import Interaction
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-humanize.activate("fr_FR")
 
 
 @dataclass
@@ -100,8 +99,8 @@ class Admin(Cog):
         for time in sorted(times, key=lambda t: t.arrival):
             fields_payload.setdefault(time.type, "")
 
-            human_time = humanize.naturaltime(datetime.now(tz=timezone.utc) - time.arrival)
-            fields_payload[time.type] += f"**{time.line}** -> {time.destination} : **{human_time}**\n"
+            ts: float = time.arrival.timestamp()
+            fields_payload[time.type] += f"**{time.line}** -> {time.destination} : <t:{ts}:R>\n"
 
         for name, value in fields_payload.items():
             embed.add_field(name=name, value=value, inline=False)
