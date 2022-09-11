@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import logging
 from sys import exit
 from typing import TYPE_CHECKING, cast
-import logging
 
 import discord
 from discord.ext import commands
 
-from utils.custom_command_tree import CustomCommandTree
 from utils.constants import GUILD_ID
+from utils.custom_command_tree import CustomCommandTree
 
 if TYPE_CHECKING:
     from discord.app_commands import AppCommand
@@ -31,7 +31,7 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.extensions_names: list[str] = ["cts"]  # , "admin"]
+        self.extensions_names: list[str] = ["cts", "restauration"]  # , "admin"]
 
     async def setup_hook(self) -> None:
         await self.load_extensions()
