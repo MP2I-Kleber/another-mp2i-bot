@@ -19,11 +19,15 @@ if TYPE_CHECKING:
 class Restauration(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
+        self.check_menu.start()
 
         self.already_posted: list[str] = []
 
     async def cog_load(self) -> None:
         self.restauration_channel = cast(TextChannel, await self.bot.fetch_channel(RESTAURATION_CHANNEL_ID))
+
+    async def cog_unload(self) -> None:
+        self.check_menu.stop()
 
     async def get_menu_imgs(self) -> dict[str, io.BytesIO]:
         async with httpx.AsyncClient() as client:
