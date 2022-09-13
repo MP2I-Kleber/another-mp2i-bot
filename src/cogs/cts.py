@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Literal, NamedTuple
 
+import discord
+
 # import humanize
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
@@ -12,11 +14,11 @@ from discord.utils import get
 
 from utils import ResponseType, response_constructor
 from utils.constants import GUILD_ID
-from utils.cts_api import get_stop_times, get_stops
+from utils.cts_api import get_lines, get_stop_times, get_stops
 from utils.errors import BaseError
 
 if TYPE_CHECKING:
-    from discord import Interaction
+    from discord import Embed, Emoji, Interaction
 
     from bot import MP2IBot
 
@@ -40,9 +42,10 @@ class StopTime(NamedTuple):
     arrival: datetime
 
 
-class Admin(Cog):
+class CTS(Cog):
     def __init__(self, bot: MP2IBot):
         self.bot = bot
+        self.emojis: dict[str, Emoji] = {}
 
     async def cog_load(self) -> None:
         stops = await get_stops()
@@ -60,6 +63,23 @@ class Admin(Cog):
             if stop in self.stops:
                 continue
             self.stops.append(stop)
+
+        lines = await get_lines()
+        lines_list = lines["LinesDelivery"]["AnnotatedLineRef"]
+        if lines_list is None:
+            logger.warning("Could not get any lines ?")
+            lines_names: list[str] = []
+        else:
+            lines_names: list[str] = [line["LineRef"] for line in lines_list if line["LineRef"] is not None]
+
+        guild = await self.bot.fetch_guild(GUILD_ID)
+        for line_name in lines_names:
+            if line_name in self.emojis:
+                continue
+            emoji = get(guild.emojis, name="_" + line_name)
+            if not emoji:
+                continue
+            self.emojis[line_name] = emoji
 
     @app_commands.command()
     @app_commands.guilds(GUILD_ID)
@@ -94,18 +114,29 @@ class Admin(Cog):
 
         embed = response_constructor(ResponseType.info, f"Prochaines arrivées pour {stop.name}")["embed"]
 
-        fields_payload: dict[str, str] = {}
+        embeds_data: dict[str, str] = {}
+        groups: dict[tuple[str, str, str], list[int]] = {}
 
         for time in sorted(times, key=lambda t: t.arrival):
-            fields_payload.setdefault(time.type, "")
+            groups.setdefault((time.type, time.line, time.destination), [])
 
             ts: int = int(time.arrival.timestamp())
-            fields_payload[time.type] += f"**{time.line}** -> {time.destination} : <t:{ts}:R>\n"
+            groups[(time.type, time.line, time.destination)].append(ts)
 
-        for name, value in fields_payload.items():
-            embed.add_field(name=name, value=value, inline=False)
+        for group, group_times in groups.items():
+            key = group[0].capitalize()
+            embeds_data.setdefault(key, "")
+            embeds_data[key] += (
+                f"**{self.emojis.get(group[1], group[1])} ➜ {group[2]}**\n"
+                + ", ".join(f"<t:{ts}:R>" for ts in group_times)
+                + "\n"
+            )
 
-        await inter.edit_original_response(embed=embed)
+        embeds: list[Embed] = [embed]
+        for name, value in embeds_data.items():
+            embeds.append(discord.Embed(title=name, description=value, color=embeds[0].color))
+
+        await inter.edit_original_response(embeds=embeds)
 
     @cts_next.autocomplete("stop_ref")
     async def extension_autocompleter(self, inter: Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -117,4 +148,4 @@ class Admin(Cog):
 
 
 async def setup(bot: MP2IBot):
-    await bot.add_cog(Admin(bot))
+    await bot.add_cog(CTS(bot))
