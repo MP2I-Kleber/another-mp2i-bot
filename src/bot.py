@@ -46,7 +46,7 @@ class MP2IBot(commands.Bot):
     async def on_ready(self) -> None:
         bot_user = cast(discord.ClientUser, self.user)  # Bot is logged in, so it's a ClientUser
 
-        activity = discord.Game("WIP!")
+        activity = discord.Game("BLUFF!")
         await self.change_presence(status=discord.Status.online, activity=activity)
 
         tmp = self.get_guild(GUILD_ID)
