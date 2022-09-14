@@ -82,7 +82,6 @@ class CTS(Cog):
             self.emojis[line_name] = emoji
 
     @app_commands.command()
-    @app_commands.guilds(GUILD_ID)
     @app_commands.rename(stop_ref="arrêt")
     async def cts_next(self, inter: Interaction, stop_ref: str):
         await inter.response.defer()
