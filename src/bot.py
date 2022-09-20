@@ -31,7 +31,7 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.extensions_names: list[str] = ["cts", "restauration"]  # , "admin"]
+        self.extensions_names: list[str] = ["cts", "restauration", "valentin-react"]  # , "admin"]
 
     async def setup_hook(self) -> None:
         await self.load_extensions()
