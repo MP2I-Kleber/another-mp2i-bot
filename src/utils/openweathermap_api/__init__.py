@@ -14,15 +14,15 @@ API_BASE_URL = "https://api.openweathermap.org"
 APP_KEY = environ["OPENWEATHERMAP_API_KEY"]
 
 
-def _get(uri: str, params: dict[str, Any]) -> httpx.Response:
+async def _get(uri: str, params: dict[str, Any]) -> httpx.Response:
     if not uri.startswith(API_BASE_URL):
         uri = urljoin(API_BASE_URL, uri)
     params.setdefault("appid", APP_KEY)
-    print(uri, params)
-    return httpx.get(uri, params=params)
+    async with httpx.AsyncClient() as client:
+        return await client.get(uri, params=params)
 
 
-def get_weather(
+async def get_weather(
     coords: tuple[float, float], units: Literal["standart", "metric", "imperial"] = "metric", lang: str = "fr"
 ) -> WeatherResponse:
     params = {
@@ -31,7 +31,7 @@ def get_weather(
         "units": units,
         "lang": lang,
     }
-    result = _get("/data/2.5/weather", params=params)
+    result = await _get("/data/2.5/weather", params=params)
     return result.json()
 
 
