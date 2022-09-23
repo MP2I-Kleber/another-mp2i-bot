@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
 
+from discord import HTTPException
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
+
+from utils.constants import GUILD_ID
 
 if TYPE_CHECKING:
     from discord import Message
@@ -14,12 +18,30 @@ class ValentinReact(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
 
+        self.users_reactions = {726867561924263946: ["🕳️"], 777852203414454273: ["🏳‍🌈"]}
+
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
-        if not message.guild or message.guild.id != 1015136740127821885:
+        if not message.guild or message.guild.id != GUILD_ID:
             return
-        if message.author.id == 726867561924263946:
-            await message.add_reaction("🕳️")
+
+        if "cqfd" in message.content.lower():
+            try:
+                await message.add_reaction("<:prof:1015373456159805440>")
+            except HTTPException:
+                pass
+
+        reactions = self.users_reactions.get(message.author.id)
+        if not reactions:
+            return
+
+        reaction = random.choice(reactions)
+
+        if random.randint(0, 25) == 0:
+            try:
+                await message.add_reaction(reaction)
+            except HTTPException:
+                pass
 
 
 async def setup(bot: MP2IBot):
