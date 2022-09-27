@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from os import environ
-
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urljoin
 
 import httpx
-from urllib.parse import urljoin
 
 if TYPE_CHECKING:
     # TODO: maybe consider using pydantic ?
-    from .models import ResponseLinesDiscoveryList, ResponseStopPointsDiscoveryList, ResponseStopMonitoringList
+    from .models import ResponseLinesDiscoveryList, ResponseStopMonitoringList, ResponseStopPointsDiscoveryList
 
 API_BASE_URL = "https://api.cts-strasbourg.eu"
 CTS_TOKEN: str = environ["CTS_TOKEN"]

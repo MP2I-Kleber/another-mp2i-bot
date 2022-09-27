@@ -33,7 +33,7 @@ class WeatherIcon(Cog):
     async def cog_load(self) -> None:
         self.mp2i_guild = await self.bot.fetch_guild(GUILD_ID)
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=30)
     async def update_weather(self) -> None:
         new_weather = await get_weather((LAT, LON))
         if (
