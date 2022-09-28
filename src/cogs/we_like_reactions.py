@@ -18,7 +18,7 @@ class ValentinReact(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
 
-        self.users_reactions = {726867561924263946: ["🕳️"], 777852203414454273: ["🏳‍🌈"]}
+        self.users_reactions = {726867561924263946: ["🕳️"], 1015216092920168478: ["🏳‍🌈"], 433713351592247299: ["🩴"], 199545535017779200: ["🪜"], 823477539167141930: ["🥇"], 533272313588613132: ["🥕"], 777852203414454273: ["🐀"]}
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
