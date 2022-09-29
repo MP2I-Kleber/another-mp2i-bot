@@ -31,7 +31,7 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "we_like_reactions"]
+        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun"]
 
     async def setup_hook(self) -> None:
         await self.load_extensions()

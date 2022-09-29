@@ -3,13 +3,14 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
-from discord import HTTPException
+from discord import HTTPException, Member
+from discord.app_commands import command, guild_only
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
 from utils.constants import GUILD_ID
 
 if TYPE_CHECKING:
-    from discord import Message
+    from discord import Interaction, Message
 
     from bot import MP2IBot
 
@@ -50,6 +51,19 @@ class ValentinReact(Cog):
                 await message.add_reaction(reaction)
             except HTTPException:
                 pass
+
+    @command()
+    @guild_only()
+    async def ratio(self, inter: Interaction, user: Member) -> None:
+        tmp: list[Message] = [m async for m in user.history(limit=1)]
+        message: Message | None = tmp[0] if tmp else None
+
+        await inter.response.send_message(
+            "Le ratio est à utiliser avec modération. (Je te le présenterais à l'occasion).", ephemeral=True
+        )
+        if message:
+            response = await message.reply("RATIO!")
+            await response.add_reaction("👍")
 
 
 async def setup(bot: MP2IBot):
