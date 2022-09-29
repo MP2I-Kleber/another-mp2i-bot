@@ -63,7 +63,7 @@ class ValentinReact(Cog):
         )
         if message:
             response = await message.reply("RATIO!")
-            await response.add_reaction("👍")
+            await response.add_reaction("💟")
 
 
 async def setup(bot: MP2IBot):
