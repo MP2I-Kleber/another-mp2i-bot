@@ -3,16 +3,14 @@ from __future__ import annotations
 import io
 import json
 from os import path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from zipfile import ZipFile
 
 import httpx
 from bs4 import BeautifulSoup, Tag
-from discord import File, TextChannel
+from discord import File, HTTPException, TextChannel
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
-
-from utils.constants import RESTAURATION_CHANNEL_ID
 
 if TYPE_CHECKING:
     from bot import MP2IBot
@@ -23,12 +21,11 @@ RESTAURATION_PATH = "./data/restauration.json"
 class Restauration(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
-        self.check_menu.start()
 
         self.already_posted: list[str] = self.read_restauration_file()
 
     async def cog_load(self) -> None:
-        self.restauration_channel = cast(TextChannel, await self.bot.fetch_channel(RESTAURATION_CHANNEL_ID))
+        self.check_menu.start()
 
     async def cog_unload(self) -> None:
         self.check_menu.stop()
@@ -74,6 +71,17 @@ class Restauration(Cog):
 
             return imgs_buffers
 
+    async def post_menu(self, imgs: dict[str, io.BytesIO]) -> None:
+        channels: list[TextChannel] = [
+            ch for ch in self.bot.get_all_channels() if isinstance(ch, TextChannel) and ch.name == "menu-cantine"
+        ]
+        files = [File(buffer, filename=filename) for filename, buffer in imgs.items()]
+        for channel in channels:
+            try:
+                await channel.send(files=files)
+            except HTTPException:
+                pass
+
     @tasks.loop(hours=3)
     async def check_menu(self) -> None:
         try:
@@ -81,10 +89,10 @@ class Restauration(Cog):
         except Exception:
             return
 
-        for menu, img in menus.items():
-            if menu not in self.already_posted:
-                self.add_restauration_file(menu)
-                await self.restauration_channel.send(file=File(img, menu))
+        menus = {filename: image_file for filename, image_file in menus.items() if filename not in self.already_posted}
+        for filename in menus:
+            self.add_restauration_file(filename)
+        await self.post_menu(menus)
 
 
 async def setup(bot: MP2IBot):
