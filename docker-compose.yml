@@ -10,3 +10,5 @@ services:
       - .env
     tty: true
     restart: always
+    volumes:
+      - ./src/data:/app/data

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import io
+import json
+from os import path
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
@@ -15,19 +17,34 @@ from utils.constants import RESTAURATION_CHANNEL_ID
 if TYPE_CHECKING:
     from bot import MP2IBot
 
+RESTAURATION_PATH = "./data/restauration.json"
+
 
 class Restauration(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
         self.check_menu.start()
 
-        self.already_posted: list[str] = []
+        self.already_posted: list[str] = self.read_restauration_file()
 
     async def cog_load(self) -> None:
         self.restauration_channel = cast(TextChannel, await self.bot.fetch_channel(RESTAURATION_CHANNEL_ID))
 
     async def cog_unload(self) -> None:
         self.check_menu.stop()
+
+    def add_restauration_file(self, filename: str) -> None:
+        self.already_posted.append(filename)
+        with open(RESTAURATION_PATH, "w") as f:
+            json.dump(self.already_posted, f)
+
+    def read_restauration_file(self) -> list[str]:
+        if not path.exists(RESTAURATION_PATH):
+            with open(RESTAURATION_PATH, "w") as f:
+                json.dump([], f)
+            return []
+        with open(RESTAURATION_PATH, "r") as f:
+            return json.load(f)
 
     async def get_menu_imgs(self) -> dict[str, io.BytesIO]:
         async with httpx.AsyncClient() as client:
@@ -66,8 +83,7 @@ class Restauration(Cog):
 
         for menu, img in menus.items():
             if menu not in self.already_posted:
-                self.already_posted.append(menu)
-
+                self.add_restauration_file(menu)
                 await self.restauration_channel.send(file=File(img, menu))
 
 
