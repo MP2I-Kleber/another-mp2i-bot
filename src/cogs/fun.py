@@ -39,6 +39,14 @@ class ValentinReact(Cog):
                 await message.add_reaction("<:prof:1015373456159805440>")
             except HTTPException:
                 pass
+        
+        if "tu veux te battre" in message.content.lower() or "vous voulez vous battre" in message.content.lower():
+            try:
+                await message.add_reaction("⭕")
+                await message.add_reaction("🇺")
+                await message.add_reaction("🇮")
+            except HTTPException:
+                pass
 
         reactions = self.users_reactions.get(message.author.id)
         if not reactions:
