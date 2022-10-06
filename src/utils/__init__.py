@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from enum import Enum, auto
-from typing import TypedDict
+from typing import NamedTuple, TypedDict
 
 import discord
 
@@ -12,7 +12,7 @@ FIRST_LAST_NAME = re.compile(r"([A-ZÀ-ß\- ]*) ((?:[A-Z][a-zà-ÿ]+|\-| )+)")
 logger = logging.getLogger(__name__)
 
 
-class Name(TypedDict):
+class Name(NamedTuple):
     first: str
     last: str
 
