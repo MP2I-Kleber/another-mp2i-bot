@@ -6,6 +6,7 @@ import os
 import random
 from typing import TYPE_CHECKING, cast
 
+import discord
 from discord import HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, guild_only
 from discord.ext import tasks
@@ -84,8 +85,12 @@ class Fun(Cog):
     @command()
     @guild_only()
     async def ratio(self, inter: Interaction, user: Member) -> None:
-        tmp: list[Message] = [m async for m in user.history(limit=1)]
-        message: Message | None = tmp[0] if tmp else None
+        if not isinstance(inter.channel, discord.abc.Messageable):
+            return
+
+        message: Message | None = await discord.utils.find(
+            lambda m: m.author.id == user.id, inter.channel.history(limit=100)
+        )
 
         await inter.response.send_message(
             "Le ratio est à utiliser avec modération. (Je te le présenterais à l'occasion).", ephemeral=True
