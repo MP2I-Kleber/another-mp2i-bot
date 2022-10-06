@@ -81,6 +81,7 @@ class Restauration(Cog):
                 await channel.send(files=files)
             except HTTPException:
                 pass
+            [file.reset() for file in files]
 
     @tasks.loop(hours=3)
     async def check_menu(self) -> None:
