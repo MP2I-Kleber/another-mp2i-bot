@@ -6,7 +6,7 @@ import os
 import random
 from typing import TYPE_CHECKING, cast
 
-from discord import HTTPException, Member, ui
+from discord import HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
@@ -16,7 +16,7 @@ from utils import get_first_and_last_names
 from utils.constants import GUILD_ID
 
 if TYPE_CHECKING:
-    from discord import Interaction, Message, TextChannel
+    from discord import Interaction, Message
 
     from bot import MP2IBot
 
