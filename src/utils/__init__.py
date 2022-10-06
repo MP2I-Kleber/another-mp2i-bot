@@ -1,10 +1,20 @@
+from __future__ import annotations
+
 import logging
+import re
 from enum import Enum, auto
 from typing import TypedDict
 
 import discord
 
+FIRST_LAST_NAME = re.compile(r"([A-ZÀ-ß\- ]*) ((?:[A-Z][a-zà-ÿ]+|\-| )+)")
+
 logger = logging.getLogger(__name__)
+
+
+class Name(TypedDict):
+    first: str
+    last: str
 
 
 class Response(TypedDict):
@@ -44,3 +54,10 @@ def response_constructor(response_type: ResponseType, message: str, embedded: bo
     embed.set_author(name=message, icon_url=_embed_author_icon_urls[response_type])
 
     return {"embed": embed}
+
+
+def get_first_and_last_names(name: str) -> Name:
+    match = FIRST_LAST_NAME.match(name)
+    if not match:
+        raise ValueError("First and last name not found")
+    return Name(first=match.group(1), last=match.group(2))

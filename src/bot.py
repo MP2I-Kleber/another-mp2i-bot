@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+import json
 import logging
+import os
 from sys import exit
 from typing import TYPE_CHECKING, cast
 
 import discord
 from discord.ext import commands
 
+from utils import get_first_and_last_names
 from utils.constants import GUILD_ID
 from utils.custom_command_tree import CustomCommandTree
 
 if TYPE_CHECKING:
     from discord.app_commands import AppCommand
+
+    from utils import Name
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +36,21 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
+        raw_names_to_ids: dict[str, int]
+        if os.path.exists("./data/names-to-ids.json"):
+            with open("./data/names-to-ids.json", "r") as f:
+                raw_names_to_ids = json.load(f)
+        else:
+            raw_names_to_ids = {}
+
+        self.ids_to_names: dict[int, Name] = {
+            id_: get_first_and_last_names(name) for name, id_ in raw_names_to_ids.items()
+        }
         self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun"]
+
+    @property
+    def names_to_ids(self) -> dict[Name, int]:
+        return {name: id_ for id_, name in self.ids_to_names.items()}
 
     async def setup_hook(self) -> None:
         await self.load_extensions()
