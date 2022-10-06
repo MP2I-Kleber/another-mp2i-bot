@@ -6,10 +6,11 @@ import os
 import random
 from typing import TYPE_CHECKING, cast
 
-from discord import HTTPException, Member
+from discord import HTTPException, Member, ui
 from discord.app_commands import command, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
+from typing_extensions import Self
 
 from utils import get_first_and_last_names
 from utils.constants import GUILD_ID
@@ -97,7 +98,19 @@ class ValentinReact(Cog):
     async def birthday(self) -> None:
         for user_id, birthday in self.birthdates.items():
             if birthday.month == dt.datetime.now().month and birthday.day == dt.datetime.now().day:
-                await self.general_channel.send(f"Joyeux anniversaire <@{user_id}> !")
+                await self.general_channel.send(f"Joyeux anniversaire <@{user_id}> !", view=TellHappyBirthday(user_id))
+
+
+class TellHappyBirthday(ui.View):
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(timeout=None)
+
+    @ui.button(label="Happy Birthday !", emoji="🎉")
+    async def tell_happy_birthday(self, inter: Interaction, button: ui.Button[Self]) -> None:
+        await inter.response.send_message(
+            f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> !"
+        )
 
 
 async def setup(bot: MP2IBot):
