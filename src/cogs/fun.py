@@ -50,6 +50,10 @@ class Fun(Cog):
 
     async def cog_load(self) -> None:
         self.general_channel = cast(TextChannel, await self.bot.fetch_channel(1015172827650998352))
+        self.birthday.start()
+
+    async def cog_unload(self) -> None:
+        self.birthday.stop()
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
