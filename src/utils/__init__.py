@@ -60,4 +60,4 @@ def get_first_and_last_names(name: str) -> Name:
     match = FIRST_LAST_NAME.match(name)
     if not match:
         raise ValueError("First and last name not found")
-    return Name(first=match.group(1), last=match.group(2))
+    return Name(last=match.group(1), first=match.group(2))
