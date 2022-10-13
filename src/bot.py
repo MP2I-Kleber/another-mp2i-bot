@@ -53,7 +53,7 @@ class MP2IBot(commands.Bot):
         return {name: id_ for id_, name in self.ids_to_names.items()}
 
     async def setup_hook(self) -> None:
-        tmp = self.get_guild(GUILD_ID)
+        tmp = await self.fetch_guild(GUILD_ID)
         if not tmp:
             logger.critical("Support server cannot be retrieved")
             exit(1)
