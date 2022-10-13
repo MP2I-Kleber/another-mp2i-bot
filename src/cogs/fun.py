@@ -7,6 +7,7 @@ import random
 from typing import TYPE_CHECKING, cast
 
 import discord
+import pytz
 from discord import HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, guild_only
 from discord.ext import tasks
@@ -103,7 +104,7 @@ class Fun(Cog):
             response = await message.reply("RATIO!")
             await response.add_reaction("💟")
 
-    @tasks.loop(time=dt.time(hour=7))
+    @tasks.loop(time=dt.time(hour=7, tzinfo=pytz.timezone("Europe/Paris")))
     async def birthday(self) -> None:
         for user_id, birthday in self.birthdates.items():
             if birthday.month == dt.datetime.now().month and birthday.day == dt.datetime.now().day:
