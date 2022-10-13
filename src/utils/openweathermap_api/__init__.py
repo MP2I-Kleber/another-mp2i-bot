@@ -23,7 +23,7 @@ async def _get(uri: str, params: dict[str, Any]) -> httpx.Response:
 
 
 async def get_weather(
-    coords: tuple[float, float], units: Literal["standart", "metric", "imperial"] = "metric", lang: str = "fr"
+    coords: tuple[float, float], units: Literal["standard", "metric", "imperial"] = "metric", lang: str = "fr"
 ) -> WeatherResponse:
     params = {
         "lat": coords[0],

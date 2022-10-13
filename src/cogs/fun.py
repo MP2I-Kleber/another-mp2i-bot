@@ -78,9 +78,9 @@ class Fun(Cog):
         if not reactions:
             return
 
-        reaction = random.choice(reactions)
+        reaction = random.choice(reactions)  # nosec
 
-        if random.randint(0, 25) == 0:
+        if random.randint(0, 25) == 0:  # nosec
             try:
                 await message.add_reaction(reaction)
             except HTTPException:
