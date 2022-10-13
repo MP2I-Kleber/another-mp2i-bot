@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from utils.constants import GUILD_ID
 from utils.openweathermap_api import get_weather
 
 if TYPE_CHECKING:
@@ -28,10 +27,11 @@ class WeatherIcon(Cog):
             with open(file_path, "rb") as file:
                 self.icons[path.splitext(path.basename(file_path))[0]] = file.read()
 
+    async def cog_load(self) -> None:
         self.update_weather.start()
 
-    async def cog_load(self) -> None:
-        self.mp2i_guild = await self.bot.fetch_guild(GUILD_ID)
+    async def cog_unload(self) -> None:
+        self.update_weather.stop()
 
     @tasks.loop(minutes=2)
     async def update_weather(self) -> None:
@@ -45,7 +45,7 @@ class WeatherIcon(Cog):
 
     async def update_icon(self, icon: str) -> None:
         bytes_icon = self.icons.get(icon, self.icons["01d"])
-        await self.mp2i_guild.edit(icon=bytes_icon)
+        await self.bot.guild.edit(icon=bytes_icon)
 
 
 async def setup(bot: MP2IBot):
