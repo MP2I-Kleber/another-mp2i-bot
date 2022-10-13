@@ -4,12 +4,13 @@ import datetime as dt
 import json
 import os
 import random
+import re
 from typing import TYPE_CHECKING, cast
 
 import discord
 import pytz
-from discord import Member, TextChannel, ui
-from discord.app_commands import command, guild_only
+from discord import AllowedMentions, HTTPException, Member, TextChannel, ui
+from discord.app_commands import command, describe, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from typing_extensions import Self
@@ -103,10 +104,15 @@ class Fun(Cog):
 
     @command()
     @guild_only()
-    async def ratio(self, inter: Interaction, user: Member) -> None:
-        if not isinstance(inter.channel, discord.abc.Messageable):
+    @describe(
+        user="L'utilisateur que vous souhaitez ratio!",
+        anonymous="Si vous ne souhaitez pas que l'on qui est à l'origine cet impitoyable ratio.",
+    )
+    async def ratio(self, inter: Interaction, user: Member, anonymous: bool = False) -> None:
+        if not isinstance(inter.channel, discord.abc.Messageable):  # only works if we can send message into the channel
             return
 
+        # we look into previous message to locate the specific message to ratio
         message: Message | None = await discord.utils.find(
             lambda m: m.author.id == user.id, inter.channel.history(limit=100)
         )
@@ -115,8 +121,15 @@ class Fun(Cog):
             "Le ratio est à utiliser avec modération. (Je te le présenterais à l'occasion).", ephemeral=True
         )
         if message:
-            response = await message.reply("RATIO!")
-            await response.add_reaction("💟")
+            text: str = "ratio."
+            if not anonymous:  # add a signature if not anonym
+                text += " by " + inter.user.mention
+
+            try:
+                response = await message.reply(text, allowed_mentions=AllowedMentions.none())
+                await response.add_reaction("💟")
+            except HTTPException:
+                pass
 
     @tasks.loop(time=dt.time(hour=7, tzinfo=pytz.timezone("Europe/Paris")))
     async def birthday(self) -> None:
