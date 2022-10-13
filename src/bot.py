@@ -53,8 +53,13 @@ class MP2IBot(commands.Bot):
         return {name: id_ for id_, name in self.ids_to_names.items()}
 
     async def setup_hook(self) -> None:
-        await self.load_extensions()
+        tmp = self.get_guild(GUILD_ID)
+        if not tmp:
+            logger.critical("Support server cannot be retrieved")
+            exit(1)
+        self.guild = tmp
 
+        await self.load_extensions()
         await self.sync_tree()
 
     async def sync_tree(self) -> None:
@@ -67,12 +72,6 @@ class MP2IBot(commands.Bot):
 
         activity = discord.Game("BLUFF!")
         await self.change_presence(status=discord.Status.online, activity=activity)
-
-        tmp = self.get_guild(GUILD_ID)
-        if not tmp:
-            logger.critical("Support server cannot be retrieved")
-            exit(1)
-        self.guild = tmp
 
         logger.info(f"Logged in as : {bot_user.name}")
         logger.info(f"ID : {bot_user.id}")
