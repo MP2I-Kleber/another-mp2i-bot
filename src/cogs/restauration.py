@@ -75,13 +75,13 @@ class Restauration(Cog):
         channels: list[TextChannel] = [
             ch for ch in self.bot.get_all_channels() if isinstance(ch, TextChannel) and ch.name == "menu-cantine"
         ]
-        files = [File(buffer, filename=filename) for filename, buffer in imgs.items()]
         for channel in channels:
+            files = [File(buffer, filename=filename) for filename, buffer in imgs.items()]
             try:
                 await channel.send(files=files)
             except HTTPException:
                 pass
-            [file.reset() for file in files]
+            [buffer.seek(0) for buffer in imgs.values()]
 
     @tasks.loop(hours=3)
     async def check_menu(self) -> None:

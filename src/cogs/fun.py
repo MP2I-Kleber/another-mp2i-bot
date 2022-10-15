@@ -4,7 +4,6 @@ import datetime as dt
 import json
 import os
 import random
-import re
 from typing import TYPE_CHECKING, cast
 
 import discord
