@@ -144,17 +144,26 @@ class MP2IGame(Cog):
 
         embed.description = " ".join("**\\_**" for _ in range(len(level["ctl"])))
 
-        await inter.response.send_message(embed=embed, file=file, view=MP2IGameView(level["ctl"], embed))
+        await inter.response.send_message(embed=embed, file=file, view=MP2IGameView(inter.user, level["ctl"], embed))
 
 
 class MP2IGameView(ui.View):
-    def __init__(self, word: str, embed: discord.Embed):
+    def __init__(self, user: discord.User | discord.Member, word: str, embed: discord.Embed):
         self.hints: set[int] = set()
         self.word = word
         self.embed = embed
+        self.user = user
         super().__init__(timeout=180)
 
-    @ui.button(label="Guess !", style=discord.ButtonStyle.green)
+    async def interaction_check(self, inter: Interaction) -> bool:
+        if inter.user.id != self.user.id:
+            await inter.response.send_message(
+                **response_constructor(ResponseType.error, "Vous n'êtes pas à l'origine du jeu"), ephemeral=True
+            )
+            return False
+        return True
+
+    @ui.button(label="Devine !", style=discord.ButtonStyle.green)
     async def guess(self, inter: Interaction, button: ui.Button[Self]) -> None:
         await inter.response.send_modal(MP2IGameModalGuess(self.word, self.hints))
 
@@ -175,6 +184,20 @@ class MP2IGameView(ui.View):
         )
 
         await inter.response.edit_message(embed=self.embed)
+
+    @ui.button(label="Pourquoi", emoji="❓", style=discord.ButtonStyle.blurple)
+    async def why(self, inter: Interaction, button: ui.Button[Self]) -> None:
+        await inter.response.send_message(
+            content=(
+                "Ce bot a un repo Github (trouvable sur son profile), et dessus, il y a une présentation du bot.\n"
+                "J'ai demandé, dans la première partie, à une intelligence artificielle de le présenter, et... "
+                "elle m'a sortie tout simplement que **MP2I** signifiait : **M**ot **P**our **2** **I**mages !\n\n"
+                "Ainsi le jeu est simple : il y a 2 images, et il faut trouver le mot associé ! Il fallait bien donner "
+                "raison à cette pauvre IA...\n\n"
+                "Enjoy !"
+            ),
+            ephemeral=True,
+        )
 
 
 class MP2IGameModalGuess(ui.Modal, title="Quel est le mot ?"):
