@@ -46,7 +46,7 @@ class MP2IBot(commands.Bot):
         self.ids_to_names: dict[int, Name] = {
             id_: get_first_and_last_names(name) for name, id_ in raw_names_to_ids.items()
         }
-        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun"]
+        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun", "mp2i"]
 
     @property
     def names_to_ids(self) -> dict[Name, int]:
