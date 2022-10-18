@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import random
 from io import BytesIO
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import discord
 from discord import app_commands, ui
@@ -144,15 +144,20 @@ class MP2IGame(Cog):
 
         embed.description = " ".join("**\\_**" for _ in range(len(level["ctl"])))
 
-        await inter.response.send_message(embed=embed, file=file, view=MP2IGameView(inter.user, level["ctl"], embed))
+        await inter.response.send_message(
+            embed=embed, file=file, view=MP2IGameView(inter.user, level["ctl"], embed, inter)
+        )
 
 
 class MP2IGameView(ui.View):
-    def __init__(self, user: discord.User | discord.Member, word: str, embed: discord.Embed):
+    def __init__(
+        self, user: discord.User | discord.Member, word: str, embed: discord.Embed, original_inter: Interaction
+    ):
         self.hints: set[int] = set()
         self.word = word
         self.embed = embed
         self.user = user
+        self.original_inter = original_inter
         super().__init__(timeout=180)
 
     async def interaction_check(self, inter: Interaction) -> bool:
@@ -165,15 +170,15 @@ class MP2IGameView(ui.View):
 
     @ui.button(label="Devine !", style=discord.ButtonStyle.green)
     async def guess(self, inter: Interaction, button: ui.Button[Self]) -> None:
-        await inter.response.send_modal(MP2IGameModalGuess(self.word, self.hints))
+        await inter.response.send_modal(MP2IGameModalGuess(self))
 
     @ui.button(label="Indice", emoji="💡", style=discord.ButtonStyle.blurple)
     async def hint(self, inter: Interaction, button: ui.Button[Self]):
         if len(self.word) - len(self.hints) <= 3:
-            await inter.response.send_message("3 lettres à trouver, c'est pas la mort !")
+            await inter.response.send_message("3 lettres à trouver, c'est pas la mort !", ephemeral=True)
             return
         if len(self.hints) >= 3:
-            await inter.response.send_message("Je vais pas donner tout le mot non plus !")
+            await inter.response.send_message("Je vais pas donner tout le mot non plus !", ephemeral=True)
             return
 
         index = random.choice(tuple(set(range(len(self.word))) - self.hints))
@@ -199,24 +204,66 @@ class MP2IGameView(ui.View):
             ephemeral=True,
         )
 
+    async def disable_all_buttons(self, apply: bool = False) -> None:
+        btn: Any  # we can't force type to be Button, so we use Any (don't want to cast or add conditions... )
+        for btn in self.children:
+            btn.disabled = True
+        if apply:
+            await self.original_inter.edit_original_response(view=self)
+
+    async def set_desc_fail(self, apply: bool = False) -> None:
+        desc = cast(str, self.embed.description)
+        desc += f"\nLe mot était **{self.word}**. Il n'a pas été trouvé..."
+        self.embed.description = desc
+
+        if apply:
+            await self.original_inter.edit_original_response(embed=self.embed)
+
+    async def set_desc_win(self, apply: bool = False) -> None:
+        desc = cast(str, self.embed.description)
+        desc += f"\nLe mot était **{self.word}**. Il a été trouvé !"
+        self.embed.description = desc
+
+        if apply:
+            await self.original_inter.edit_original_response(embed=self.embed)
+
+    async def on_timeout(self) -> None:
+        await self.disable_all_buttons()
+        await self.set_desc_fail()
+        await self.original_inter.edit_original_response(embed=self.embed, view=self)
+
+    async def stop_view(self, win: bool) -> None:
+        await self.disable_all_buttons()
+        if win:
+            await self.set_desc_win()
+        else:
+            await self.set_desc_fail()
+        await self.original_inter.edit_original_response(embed=self.embed, view=self)
+
 
 class MP2IGameModalGuess(ui.Modal, title="Quel est le mot ?"):
     response: ui.TextInput[Self] = ui.TextInput(label="Réponse :")
 
-    def __init__(self, word: str, hints: set[int]) -> None:
-        self.response.placeholder = " ".join("_" if i not in hints else l for i, l in enumerate(word))
-        self.response.max_length = len(word)
-        self.response.min_length = len(word)
-        self.word = word
+    def __init__(self, parent: MP2IGameView) -> None:
+        self.response.placeholder = " ".join("_" if i not in parent.hints else l for i, l in enumerate(parent.word))
+        self.response.max_length = len(parent.word)
+        self.response.min_length = len(parent.word)
+        self.parent = parent
         super().__init__(timeout=180)
 
-    async def on_submit(self, interaction: Interaction, /) -> None:
-        if self.response.value.lower() == self.word.lower():
-            await interaction.response.send_message(f"Bravo ! Tu as trouvé la réponse ! Le mot était {self.word}.")
-        else:
-            await interaction.response.send_message(
-                f"Comment t'es éclaté, c'était évident que le mot était {self.word}..."
+    async def on_submit(self, inter: Interaction, /) -> None:
+        if self.response.value.lower() == self.parent.word.lower():
+            await inter.response.send_message(
+                f"Bravo {inter.user.mention}! Tu as trouvé la réponse ! Le mot était {self.parent.word}.",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
+            await self.parent.stop_view(True)
+        else:
+            await inter.response.send_message(
+                f"Euh... {inter.user.mention} t'as vraiment cru que le mot était {self.response.value.upper()} ??\nComment t'es éclaté, c'était évident que le mot était {self.parent.word}...",
+                allowed_mentions=discord.AllowedMentions.none(),  # don't ping the user
+            )
+            await self.parent.stop_view(False)
 
 
 async def setup(bot: MP2IBot):
