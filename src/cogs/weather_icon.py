@@ -4,6 +4,7 @@ from glob import glob
 from os import path
 from typing import TYPE_CHECKING
 
+import httpx
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
@@ -33,9 +34,12 @@ class WeatherIcon(Cog):
     async def cog_unload(self) -> None:
         self.update_weather.stop()
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=5)
     async def update_weather(self) -> None:
-        new_weather = await get_weather((LAT, LON))
+        try:
+            new_weather = await get_weather((LAT, LON))
+        except httpx.TimeoutException:
+            return
         if (
             self.current_weather is None
             or new_weather["weather"][0]["icon"] != self.current_weather["weather"][0]["icon"]
