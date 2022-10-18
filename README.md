@@ -24,6 +24,7 @@ C'est un bot privé, mais sentez-vous libre de réutiliser le code pour faire vo
 
 - envoyer le menu de la cantine
 - permettre de voir les horraires des trams et bus de la CTS
+- le fameux MP2I Game (Mot Pour 2 Indications)
 - d'autres a venir...
 
 Sentez-vous libre d'en ajouter !
