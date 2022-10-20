@@ -39,15 +39,23 @@ class Fun(Cog):
             777852203414454273: ["🐀"],
         }
 
-        #words that trigger the bot to react with a random emoji from the list assigned to the user.
-        self.user.triggers = {
-            726867561924263946: ["Bouteille", "Boire," "Bière", "Alcool", "Alcoolique", "Alcoolisme", "Alcoolique"],
-            1015216092920168478: ["Couleur", "Couleurs"],
-            433713351592247299: ["tong", "tongs","gitan"],
+        # words that trigger the bot to react with a random emoji from the list assigned to the user.
+        self.users_triggers = {
+            726867561924263946: ["bouteille", "boire," "bière", "alcool", "alcoolique", "alcoolisme", "alcoolique"],
+            1015216092920168478: ["couleur", "couleurs"],
+            433713351592247299: ["tong", "tongs", "gitan"],
             199545535017779200: ["escabeau", "petit"],
-            823477539167141930: ["champion", "championne", "championnat", "championnats", "medaille", "médaille"],
+            823477539167141930: [
+                "champion",
+                "championne",
+                "championnat",
+                "championnats",
+                "médaille",
+                "médaille",
+                "majorant",
+            ],
             533272313588613132: ["carotte", "carottes"],
-            777852203414454273: ["rat", "rats", "argent", "gratuit" "sous", "paypal"],
+            777852203414454273: ["rat", "rats", "argent", "gratuit", "sous", "paypal"],
         }
 
         raw_birthdates: dict[str, str]
@@ -95,7 +103,9 @@ class Fun(Cog):
             reaction = random.choice(reactions)  # nosec
 
             # only add reactions with a chance of 1/25
-            if random.randint(0, 25) == 0 or find(self.trigger[message.author.id], lambda e: e in message.content.lower()): #react randomly or if message contains a trigger word # nosec
+            if random.randint(0, 25) == 0 or find(
+                lambda e: e in message.content.lower(), self.users_triggers[message.author.id]
+            ):  # react randomly or if message contains a trigger word # nosec
                 await message.add_reaction(reaction)
 
     def is_birthday(self, user_id: int) -> bool:

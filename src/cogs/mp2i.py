@@ -233,6 +233,7 @@ class MP2IGameView(ui.View):
         await self.original_inter.edit_original_response(embed=self.embed, view=self)
 
     async def stop_view(self, win: bool) -> None:
+        self.stop()
         await self.disable_all_buttons()
         if win:
             await self.set_desc_win()
