@@ -31,7 +31,12 @@ class MP2IBot(commands.Bot):
             tree_cls=CustomCommandTree,
             member_cache_flags=discord.MemberCacheFlags.all(),
             chunk_guilds_at_startup=True,
-            allowed_mentions=discord.AllowedMentions.none(),
+            allowed_mentions=discord.AllowedMentions(
+                users=True,
+                everyone=False,
+                roles=False,
+                replied_user=False,
+            ),
             intents=discord.Intents.all(),
             help_command=None,
         )
