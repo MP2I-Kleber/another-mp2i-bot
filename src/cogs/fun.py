@@ -181,8 +181,12 @@ class TellHappyBirthday(ui.View):
 
     @ui.button(label="Happy Birthday !", emoji="🎉")
     async def tell_happy_birthday(self, inter: Interaction, button: ui.Button[Self]) -> None:
+        mentions = discord.AllowedMentions(
+            users=True,
+        )
         await inter.response.send_message(
-            f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> !"
+            f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> !",
+            allowed_mentions=mentions
         )
 
 
