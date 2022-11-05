@@ -122,6 +122,23 @@ class Fun(Cog):
             return False
         now = dt.datetime.now()
         return birthdate.day == now.day and birthdate.month == now.month
+    
+    @command()
+    @guild_only()
+    async def prochains_anniv(self, inter: Interaction, user: Member) -> None:
+        if not isinstance(inter.channel, discord.abc.Messageable):
+            return
+        
+        if not message.guild or message.guild.id != GUILD_ID:
+            return
+        
+        lst = ""
+        for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: t[1]):
+            if len(lst) < 4000:
+                lst.append(f"{self.bot.ids_to_names[user_id]} : {birthday.day}-{birthday.month}-{birthday.year}\n")
+        
+        embed=discord.Embed(title="Listes des prochains anniversaires", description=lst)
+        await inter.send(embed=embed)
 
     @command()
     @guild_only()
