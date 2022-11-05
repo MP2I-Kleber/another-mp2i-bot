@@ -134,8 +134,11 @@ class Fun(Cog):
         
         lst = ""
         for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: t[1]):
-            if len(lst) < 4000:
-                lst.append(f"{self.bot.ids_to_names[user_id]} : {birthday.day}-{birthday.month}-{birthday.year}\n")
+            ts: int = int(birthday.timestamp())
+            l = f"{self.bot.ids_to_names[user_id]} <t:{ts}:R>\n"
+            if len(lst + l) > 4000:
+                break
+            lst.append(l)
         
         embed=discord.Embed(title="Listes des prochains anniversaires", description=lst)
         await inter.send(embed=embed)
