@@ -135,7 +135,7 @@ class Fun(Cog):
         lst = ""
         for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: t[1]):
             ts: int = int(birthday.timestamp())
-            l = f"{self.bot.ids_to_names[user_id]} <t:{ts}:R>\n"
+            l = f"{self.bot.ids_to_names[user_id]} <t:{ts}:D>\n"
             if len(lst + l) > 4000:
                 break
             lst.append(l)
