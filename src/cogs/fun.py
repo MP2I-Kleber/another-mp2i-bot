@@ -133,9 +133,24 @@ class Fun(Cog):
             return
 
         lst = ""
-        for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: t[1]):
+        now = dt.datetime.now()
+
+        for user_id, birthday in sorted(
+            self.birthdates.items(),
+            key=lambda t: (
+                (t[1].replace(year=now.year).timestamp() - now.timestamp()) > 0,
+                t[1].replace(year=now.year) - now,
+            ),
+        ):
             ts: int = int(birthday.timestamp())
-            l = f"{self.bot.ids_to_names[user_id]} <t:{ts}:D> (<t:{ts}:R>)\n"
+            name = self.bot.ids_to_names[user_id]
+
+            if birthday.replace(year=now.year).timestamp() - now.timestamp() < 0:  # anniversaire passé
+                relative = birthday.replace(year=now.year + 1)
+            else:
+                relative = birthday.replace(year=now.year)
+
+            l = f"{name.first} {name.last[0]}. <t:{ts}:D> (<t:{relative.timestamp()}:R>)\n"
             if len(lst + l) > 4000:
                 break
             lst += l
