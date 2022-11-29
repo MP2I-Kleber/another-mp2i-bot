@@ -136,11 +136,11 @@ class Fun(Cog):
         now = dt.datetime.now()
 
         def sorted_key(date: dt.datetime) -> tuple[bool, dt.datetime]:
-            passed = birthday.replace(year=now.year).timestamp() - now.timestamp() < 0
+            passed = date.replace(year=now.year).timestamp() - now.timestamp() < 0
             if passed:  # anniversaire passé
-                relative = birthday.replace(year=now.year + 1)
+                relative = date.replace(year=now.year + 1)
             else:
-                relative = birthday.replace(year=now.year)
+                relative = date.replace(year=now.year)
 
             return passed, relative
 
