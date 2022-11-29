@@ -122,26 +122,26 @@ class Fun(Cog):
             return False
         now = dt.datetime.now()
         return birthdate.day == now.day and birthdate.month == now.month
-    
+
     @command()
     @guild_only()
-    async def prochains_anniv(self, inter: Interaction, user: Member) -> None:
+    async def prochains_anniv(self, inter: Interaction) -> None:
         if not isinstance(inter.channel, discord.abc.Messageable):
             return
-        
-        if not message.guild or message.guild.id != GUILD_ID:
+
+        if not inter.guild or inter.guild.id != GUILD_ID:
             return
-        
+
         lst = ""
         for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: t[1]):
             ts: int = int(birthday.timestamp())
             l = f"{self.bot.ids_to_names[user_id]} <t:{ts}:D> (<t:{ts}:R>)\n"
             if len(lst + l) > 4000:
                 break
-            lst.append(l)
-        
-        embed=discord.Embed(title="Listes des prochains anniversaires", description=lst)
-        await inter.send(embed=embed)
+            lst += l
+
+        embed = discord.Embed(title="Listes des prochains anniversaires", description=lst)
+        await inter.response.send_message(embed=embed)
 
     @command()
     @guild_only()
@@ -206,7 +206,7 @@ class TellHappyBirthday(ui.View):
         )
         await inter.response.send_message(
             f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> !",
-            allowed_mentions=mentions
+            allowed_mentions=mentions,
         )
 
 
