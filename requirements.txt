@@ -4,3 +4,4 @@ beautifulsoup4
 typing_extensions
 pytz
 Pillow
+openai

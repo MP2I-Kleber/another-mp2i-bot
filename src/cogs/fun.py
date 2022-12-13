@@ -7,6 +7,7 @@ import random
 from typing import TYPE_CHECKING, cast
 
 import discord
+import openai
 import pytz
 from discord import AllowedMentions, HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, describe, guild_only
@@ -16,12 +17,15 @@ from discord.utils import find
 from typing_extensions import Self
 
 from utils import get_first_and_last_names
-from utils.constants import GUILD_ID
+from utils.constants import GUILD_ID, OPENIA_CHAT
 
 if TYPE_CHECKING:
     from discord import Interaction, Message
 
     from bot import MP2IBot
+
+
+openai.api_key = os.environ.get("OPENIA_API_KEY")
 
 
 class Fun(Cog):
@@ -77,10 +81,33 @@ class Fun(Cog):
     async def cog_unload(self) -> None:
         self.birthday.stop()
 
+    async def ask_to_openIA(self, message: Message) -> None:
+        """Chat with openIA davinci model in discord. No context, no memory, only one message conversation.
+
+        Args:
+            message (Message): the message object
+        """
+        prompt: str = message.content
+        response: Any = completion.create(  # type: ignore
+            prompt=prompt,
+            engine="text-davinci-003",
+            temperature=0.9,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6,
+            best_of=1,
+            max_tokens=150,
+        )
+        answer: str = cast(str, response.choices[0].text.strip())  # type: ignore
+        await message.channel.send(answer, reference=message)
+
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
         if not message.guild or message.guild.id != GUILD_ID:  # only works into the MP2I guild.
             return
+
+        if openai.api_key is not None and message.channel.id == OPENIA_CHAT:
+            await self.ask_to_openIA(message)
 
         # the bot is assumed admin on MP2I guild. We will not check permissions.
 
