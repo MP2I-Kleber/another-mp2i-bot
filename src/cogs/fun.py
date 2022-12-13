@@ -88,7 +88,7 @@ class Fun(Cog):
             message (Message): the message object
         """
         prompt: str = message.content
-        response: Any = completion.create(  # type: ignore
+        response: Any = openai.Completion.create(  # type: ignore
             prompt=prompt,
             engine="text-davinci-003",
             temperature=0.9,
@@ -104,6 +104,8 @@ class Fun(Cog):
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
         if not message.guild or message.guild.id != GUILD_ID:  # only works into the MP2I guild.
+            return
+        if message.author.id == message.guild.me.id:
             return
 
         if openai.api_key is not None and message.channel.id == OPENIA_CHAT:
