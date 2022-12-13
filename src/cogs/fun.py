@@ -88,16 +88,17 @@ class Fun(Cog):
             message (Message): the message object
         """
         prompt: str = message.content
-        response: Any = openai.Completion.create(  # type: ignore
-            prompt=prompt,
-            engine="text-davinci-003",
-            temperature=0.9,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0.6,
-            best_of=1,
-            max_tokens=150,
-        )
+        async with message.channel.typing():
+            response: Any = openai.Completion.create(  # type: ignore
+                prompt=prompt,
+                engine="text-davinci-003",
+                temperature=0.9,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0.6,
+                best_of=1,
+                max_tokens=150,
+            )
         answer: str = cast(str, response.choices[0].text.strip())  # type: ignore
         await message.channel.send(answer, reference=message)
 
