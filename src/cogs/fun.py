@@ -87,16 +87,29 @@ class Fun(Cog):
         Args:
             message (Message): the message object
         """
+        if message.reference is not None and isinstance(message.reference.resolved, Message):
+            context = message.reference.resolved.content
+        else:
+            context = ""
+
         name = self.bot.ids_to_names.get(message.author.id)
         if name is None:
             name = "Human:"
         else:
             name = name.first
 
-        prompt: str = f"{name}: {message.content}\nAI:"
+        if message.content.startswith("<@1015367382727933963>") or message.content.startswith(
+            "<@!1015367382727933963>"
+        ):
+            content = ">".join(message.content.split(">")[1:])
+        else:
+            content = message.content
+
+        prompt: str = f"{context}\n{name}: {content}\nAI:"
         async with message.channel.typing():
             response: Any = openai.Completion.create(  # type: ignore
                 prompt=prompt,
+                stop=[f"\n{name}"],
                 engine="text-davinci-003",
                 temperature=0.7,
                 top_p=1,
