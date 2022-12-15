@@ -87,17 +87,23 @@ class Fun(Cog):
         Args:
             message (Message): the message object
         """
-        prompt: str = message.content
+        name = self.bot.ids_to_names.get(message.author.id)
+        if name is None:
+            name = "Human:"
+        else:
+            name = name.first
+
+        prompt: str = f"{name}: {message.content}\nAI:"
         async with message.channel.typing():
             response: Any = openai.Completion.create(  # type: ignore
                 prompt=prompt,
                 engine="text-davinci-003",
-                temperature=0.9,
+                temperature=0.7,
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0.6,
                 best_of=1,
-                max_tokens=150,
+                max_tokens=250,
             )
         answer: str = cast(str, response.choices[0].text.strip())  # type: ignore
         await message.channel.send(answer, reference=message)
@@ -109,8 +115,13 @@ class Fun(Cog):
         if message.author.id == message.guild.me.id:
             return
 
-        if openai.api_key is not None and message.channel.id == OPENIA_CHAT:
-            await self.ask_to_openIA(message)
+        if openai.api_key is not None:
+            if message.guild.me in message.mentions or (
+                message.reference is not None
+                and isinstance(message.reference.resolved, Message)
+                and message.reference.resolved.author.id == message.guild.me.id
+            ):
+                await self.ask_to_openIA(message)
 
         # the bot is assumed admin on MP2I guild. We will not check permissions.
 
