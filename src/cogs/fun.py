@@ -17,7 +17,7 @@ from discord.utils import find
 from typing_extensions import Self
 
 from utils import get_first_and_last_names
-from utils.constants import GUILD_ID, OPENIA_CHAT
+from utils.constants import GUILD_ID
 
 if TYPE_CHECKING:
     from discord import Interaction, Message
