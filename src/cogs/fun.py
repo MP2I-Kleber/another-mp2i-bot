@@ -87,7 +87,7 @@ class Fun(Cog):
         Args:
             message (Message): the message object
         """
-        if message.reference is not None and isinstance(message.reference.resolved, Message):
+        if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             context = message.reference.resolved.content
         else:
             context = ""
@@ -131,7 +131,7 @@ class Fun(Cog):
         if openai.api_key is not None:
             if message.guild.me in message.mentions or (
                 message.reference is not None
-                and isinstance(message.reference.resolved, Message)
+                and isinstance(message.reference.resolved, discord.Message)
                 and message.reference.resolved.author.id == message.guild.me.id
             ):
                 await self.ask_to_openIA(message)
