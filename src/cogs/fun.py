@@ -41,6 +41,7 @@ class Fun(Cog):
             823477539167141930: ["🥇"],
             533272313588613132: ["🥕"],
             777852203414454273: ["🐀"],
+            293463332781031434: ["📉"],
         }
 
         # words that trigger the bot to react with a random emoji from the list assigned to the user.
