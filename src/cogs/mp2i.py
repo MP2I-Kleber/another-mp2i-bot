@@ -255,13 +255,13 @@ class MP2IGameModalGuess(ui.Modal, title="Quel est le mot ?"):
     async def on_submit(self, inter: Interaction, /) -> None:
         if self.response.value.lower() == self.parent.word.lower():
             await inter.response.send_message(
-                f"Bravo {inter.user.mention}! Tu as trouvé la réponse 42 ! Le mot était {self.parent.word}.",
+                f"Bravo {inter.user.mention}! Tu as trouvé la réponse ! Le mot était {self.parent.word}.",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
             await self.parent.stop_view(True)
         else:
             await inter.response.send_message(
-                f"Euh... {inter.user.mention} t'as vraiment cru que le mot était {self.response.value.upper()} ??\nComment t'es éclaté, Axel, ce gros beau gosse, aurait trouvé la réponse triviale qui était {self.parent.word}...",
+                f"Euh... {inter.user.mention} t'as vraiment cru que le mot était {self.response.value.upper()} ??\nComment t'es éclaté, c'était évident que le mot était {self.parent.word}...",
                 allowed_mentions=discord.AllowedMentions.none(),  # don't ping the user
             )
             await self.parent.stop_view(False)
