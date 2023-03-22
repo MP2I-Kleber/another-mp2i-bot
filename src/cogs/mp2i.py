@@ -261,7 +261,7 @@ class MP2IGameModalGuess(ui.Modal, title="Quel est le mot ?"):
             await self.parent.stop_view(True)
         else:
             await inter.response.send_message(
-                f"Euh... {inter.user.mention} t'as vraiment cru que le mot était {self.response.value.upper()} ??\nComment t'es éclaté, c'était évident que le mot était {self.parent.word}...",
+                f"Euh... {inter.user.mention} t'as vraiment cru que le mot était {self.response.value.upper()} ??\nComment t'es éclaté, axel le gros beau gosse aurait trouvé, c'était évident que le mot était {self.parent.word}...",
                 allowed_mentions=discord.AllowedMentions.none(),  # don't ping the user
             )
             await self.parent.stop_view(False)
