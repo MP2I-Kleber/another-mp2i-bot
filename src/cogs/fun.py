@@ -111,7 +111,7 @@ class Fun(Cog):
             response: Any = openai.Completion.create(  # type: ignore
                 prompt=prompt,
                 stop=[f"\n{name}"],
-                engine="text-davinci-003",
+                engine="gpt-3.5-turbo",
                 temperature=0.7,
                 top_p=1,
                 frequency_penalty=0,
