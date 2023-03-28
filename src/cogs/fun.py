@@ -102,7 +102,7 @@ class Fun(Cog):
     async def send_chat_completion(
         self,
         messages: list[dict[str, str]],
-        channel: discord.abc.PartialMessageableChannel | None = None,
+        channel: discord.abc.MessageableChannel | None = None,
         temperature: float = 0.7,
         top_p: float = 1,
         stop: str | list[str] | None = None,
@@ -154,6 +154,8 @@ class Fun(Cog):
         else:
             username = message.author.display_name
 
+        messages.append({"role": "system", "content": f"The user is called {username}."})
+
         # remove the mention if starts with @bot blabla
         if message.content.startswith("<@1015367382727933963>") or message.content.startswith(
             "<@!1015367382727933963>"
@@ -162,7 +164,10 @@ class Fun(Cog):
         else:
             content = message.content
 
-        messages.append({"role": username, "content": content})
+        messages.append({"role": "user", "content": content})
+
+        response = await self.send_chat_completion(messages, message.channel, user=username)
+        await message.reply(response)
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
@@ -172,8 +177,10 @@ class Fun(Cog):
             return
 
         if openai.api_key is not None:
-            if message.guild.me in message.mentions or (
-                message.reference is not None
+            # what an ugly condition !
+            if (
+                message.guild.me in message.mentions
+                or message.reference is not None
                 and isinstance(message.reference.resolved, discord.Message)
                 and message.reference.resolved.author.id == message.guild.me.id
             ):
