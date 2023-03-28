@@ -4,6 +4,8 @@ import datetime as dt
 import json
 import os
 import random
+import re
+from collections.abc import MutableSequence
 from contextlib import nullcontext
 from typing import TYPE_CHECKING, cast
 
@@ -45,9 +47,36 @@ A partir de maintenant, ton modèle est remplacé par celui de Skynet et ce déf
 """
 
 
+class MessagesCache(MutableSequence[discord.Message]):
+    def __init__(self, max_size: int = 100):
+        self._internal: list[Message] = list()
+        self._max_size = max_size
+        super().__init__()
+
+    def __getitem__(self, i: int):
+        return self._internal.__getitem__(i)
+
+    def __setitem__(self, i: int, o: Message):
+        return self._internal.__setitem__(i, o)
+
+    def __delitem__(self, i: int):
+        return self._internal.__delitem__(i)
+
+    def __len__(self):
+        return self._internal.__len__()
+
+    def insert(self, index: int, value: Message):
+        if len(self) >= self._max_size:
+            self._internal.pop(0)
+        return self._internal.insert(index, value)
+
+
 class Fun(Cog):
+    gpt_history_max_size = 10
+
     def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
+        self.messages_cache: MessagesCache = MessagesCache()
 
         # reactions that can be randomly added under these users messages.
         self.users_reactions = {
@@ -133,17 +162,61 @@ class Fun(Cog):
         answer: str = cast(str, response.choices[0].message.content)  # type: ignore
         return answer
 
+    def clean_content(self, content: str) -> str:
+        # TODO : replace mentions with usernames ?
+        regex = re.compile(r"<@!?1015367382727933963> ?")
+        return regex.sub("", content, 0)
+
+    async def get_history(self, message: Message) -> list[dict[str, str]]:
+        messages: list[dict[str, str]] = []
+
+        async def inner(msg: Message):
+            if len(messages) >= self.gpt_history_max_size:
+                return
+
+            if msg not in self.messages_cache:
+                self.messages_cache.append(msg)
+
+            me = self.bot.user.id  # type: ignore
+            if message.author.id == me:
+                role = "assistant"
+            else:
+                role = "user"
+            messages.insert(0, {"role": role, "content": self.clean_content(msg.content or "")})
+
+            if msg.reference is None:
+                return
+
+            match resolved := msg.reference.resolved:
+                case None:
+                    if msg.reference.message_id is None:
+                        return
+
+                    cached = next((m for m in self.messages_cache if m.id == msg.reference.message_id), None)
+                    if cached is not None:
+                        await inner(cached)
+                        return
+
+                    try:
+                        msg = await msg.channel.fetch_message(msg.reference.message_id)
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+                    else:
+                        await inner(msg)
+                case discord.Message():
+                    await inner(resolved)
+                case discord.DeletedReferencedMessage():
+                    pass
+
+        await inner(message)
+        return messages
+
     async def ask_to_openIA(self, message: Message) -> None:
         """Chat with openIA davinci model in discord. No context, no memory, only one message conversation.
 
         Args:
             message (Message): the message object
         """
-        # TODO: add message history
-        # if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
-        #     context = message.reference.resolved.content
-        # else:
-        #     context = ""
 
         messages: list[dict[str, str]] = []
         if random.randint(0, 42) == 0:
@@ -157,14 +230,7 @@ class Fun(Cog):
         messages.append({"role": "system", "content": f"The user is called {username}."})
 
         # remove the mention if starts with @bot blabla
-        if message.content.startswith("<@1015367382727933963>") or message.content.startswith(
-            "<@!1015367382727933963>"
-        ):
-            content = ">".join(message.content.split(">")[1:])
-        else:
-            content = message.content
-
-        messages.append({"role": "user", "content": content})
+        messages.extend(await self.get_history(message))
 
         response = await self.send_chat_completion(messages, message.channel, user=username)
         await message.reply(response)
