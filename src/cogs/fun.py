@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import datetime as dt
 import json
 import os
 import random
+from contextlib import nullcontext
 from typing import TYPE_CHECKING, cast
 
 import discord
@@ -14,7 +14,6 @@ from discord import AllowedMentions, HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, describe, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
-from discord.utils import find
 from typing_extensions import Self
 
 from utils import get_first_and_last_names
@@ -63,7 +62,7 @@ class Fun(Cog):
         }
 
         # words that trigger the bot to react with a random emoji from the list assigned to the user.
-        self.users_triggers = {
+        self.users_triggers: dict[int, list[str]] = {
             726867561924263946: ["bouteille", "boire," "bière", "alcool", "alcoolique", "alcoolisme", "alcoolique"],
             1015216092920168478: ["couleur", "couleurs"],
             433713351592247299: ["tong", "tongs", "gitan"],
@@ -100,6 +99,40 @@ class Fun(Cog):
     async def cog_unload(self) -> None:
         self.birthday.stop()
 
+    async def send_chat_completion(
+        self,
+        messages: list[dict[str, str]],
+        channel: discord.abc.PartialMessageableChannel | None = None,
+        temperature: float = 0.7,
+        top_p: float = 1,
+        stop: str | list[str] | None = None,
+        max_tokens: int | None = 250,
+        presence_penalty: float = 0,
+        frequency_penalty: float = 0,
+        user: str | None = None,
+    ):
+        kwargs = {
+            "model": "gpt-3.5-turbo",
+            "messages": messages,
+            "temperature": temperature,
+            "top_p": top_p,
+            "n": 1,
+            "stop": stop,
+            "frequency_penalty": frequency_penalty,
+            "presence_penalty": presence_penalty,
+        }
+
+        if max_tokens is not None:
+            kwargs["max_tokens"] = max_tokens
+        if user is not None:
+            kwargs["user"] = user
+
+        async with channel.typing() if channel else nullcontext():  # interesting syntax! :)
+            response = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
+
+        answer: str = cast(str, response.choices[0].message.content)  # type: ignore
+        return answer
+
     async def ask_to_openIA(self, message: Message) -> None:
         """Chat with openIA davinci model in discord. No context, no memory, only one message conversation.
 
@@ -130,23 +163,6 @@ class Fun(Cog):
             content = message.content
 
         messages.append({"role": username, "content": content})
-
-        async def send_request():
-            async with message.channel.typing():
-                response = openai.ChatCompletion.create(  # type: ignore
-                    model="gpt-3.5-turbo",
-                    messages=messages,
-                    temperature=0.7,
-                    top_p=1,
-                    frequency_penalty=0,
-                    presence_penalty=0.6,
-                    best_of=1,
-                    max_tokens=250,
-                )
-            answer: str = cast(str, response.choices[0].text.strip())  # type: ignore
-            await message.channel.send(answer, reference=message)
-
-        asyncio.create_task(send_request())
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
@@ -184,9 +200,9 @@ class Fun(Cog):
             reaction = random.choice(reactions)  # nosec
 
             # only add reactions with a chance of 1/25
-            if random.randint(0, 25) == 0 or find(
-                lambda e: e in message.content.lower(), self.users_triggers[message.author.id]
-            ):  # react randomly or if message contains a trigger word # nosec
+            # react randomly or if message contains a trigger word
+            triggers = self.users_triggers[message.author.id]
+            if random.randint(0, 25) == 0 or any(e in message.content.lower() for e in triggers):
                 await message.add_reaction(reaction)
 
     def is_birthday(self, user_id: int) -> bool:
