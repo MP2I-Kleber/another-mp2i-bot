@@ -1,4 +1,6 @@
-src/data/
+resources/user_informations/*
+!resources/user_informations/example.csv
+data/
 
 .vscode/
 .fleet/
