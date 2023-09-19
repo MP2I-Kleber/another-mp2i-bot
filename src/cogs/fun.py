@@ -8,10 +8,10 @@ import re
 from collections.abc import MutableSequence
 from contextlib import nullcontext
 from typing import TYPE_CHECKING, cast
+from zoneinfo import ZoneInfo
 
 import discord
 import openai
-import pytz
 from discord import AllowedMentions, HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, describe, guild_only
 from discord.ext import tasks
@@ -358,7 +358,7 @@ class Fun(Cog):
             except HTTPException:
                 pass
 
-    @tasks.loop(time=dt.time(hour=7, tzinfo=pytz.timezone("Europe/Paris")))
+    @tasks.loop(time=dt.time(hour=7, tzinfo=ZoneInfo("Europe/Paris")))
     async def birthday(self) -> None:
         """At 7am, check if it's someone's birthday and send a message if it is."""
         now = dt.datetime.now()
@@ -381,7 +381,6 @@ class TellHappyBirthday(ui.View):
     """
 
     def __init__(self, user_id: int) -> None:
-
         self.user_id = user_id
         super().__init__(timeout=None)
 
