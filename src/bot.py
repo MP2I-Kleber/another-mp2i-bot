@@ -7,6 +7,7 @@ from datetime import datetime
 from glob import glob
 from sys import exit
 from typing import TYPE_CHECKING, cast
+from zoneinfo import ZoneInfo
 
 import discord
 from discord.ext import commands
@@ -57,6 +58,9 @@ class MP2IBot(commands.Bot):
 
         return result
 
+    def get_personal_information(self, discord_id: int) -> PersonalInformation | None:
+        return discord.utils.get(self.personal_informations, discord_id=discord_id)
+
     async def setup_hook(self) -> None:
         tmp = await self.fetch_guild(GUILD_ID)
         if not tmp:
@@ -100,6 +104,7 @@ class PersonalInformation:
         firstname: str | None,
         lastname: str | None,
         nickname: str | None,
+        discord_id: str | None,
         birthdate: str,
         origin: str,
     ) -> None:
@@ -110,7 +115,12 @@ class PersonalInformation:
         self.nickname = nickname
         self.origin = origin
 
-        self.birthdate = datetime.strptime(birthdate, r"%d-%m-%Y")
+        if discord_id is not None:
+            self.discord_id = int(discord_id)
+        else:
+            self.discord_id = None
+
+        self.birthdate = datetime.strptime(birthdate, r"%d-%m-%Y").astimezone(tz=ZoneInfo("Europe/Paris"))
 
     @property
     def display(self):

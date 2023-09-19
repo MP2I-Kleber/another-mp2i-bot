@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import datetime as dt
-import json
 import os
 import random
 import re
 from collections.abc import MutableSequence
 from contextlib import nullcontext
+from functools import partial
 from typing import TYPE_CHECKING, cast
 from zoneinfo import ZoneInfo
 
@@ -18,7 +18,6 @@ from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from typing_extensions import Self
 
-from utils import get_first_and_last_names
 from utils.constants import GUILD_ID
 
 if TYPE_CHECKING:
@@ -53,7 +52,7 @@ class MessagesCache(MutableSequence[discord.Message]):
         self._max_size = max_size
         super().__init__()
 
-    def __getitem__(self, i: int):
+    def __getitem__(self, i: int):  # type: ignore (no range select)
         return self._internal.__getitem__(i)
 
     def __setitem__(self, i: int, o: Message):
@@ -107,18 +106,6 @@ class Fun(Cog):
             ],
             533272313588613132: ["carotte", "carottes"],
             777852203414454273: ["rat", "rats", "argent", "gratuit", "sous", "paypal"],
-        }
-
-        raw_birthdates: dict[str, str]
-        if os.path.exists("./data/birthdates.json"):
-            with open("./data/birthdates.json", "r") as f:
-                raw_birthdates = json.load(f)
-        else:
-            raw_birthdates = {}
-
-        self.birthdates: dict[int, dt.datetime] = {  # maps from user_ids to datetime
-            bot.names_to_ids[get_first_and_last_names(name)]: dt.datetime.strptime(date, r"%d-%m-%Y")
-            for name, date in raw_birthdates.items()
         }
 
     async def cog_load(self) -> None:
@@ -223,8 +210,8 @@ class Fun(Cog):
         if random.randint(0, 42) == 0:
             messages.append({"role": "system", "content": skynet_prompt})
 
-        if tmp := self.bot.ids_to_names.get(message.author.id):
-            username = tmp.first
+        if pi := self.bot.get_personal_information(message.author.id):
+            username = pi.firstname
         else:
             username = message.author.display_name
 
@@ -288,10 +275,12 @@ class Fun(Cog):
         Returns:
             bool: also return False if the birthdate is unknown.
         """
-        birthdate = self.birthdates.get(user_id)
-        if not birthdate:  # if we don't have any informations about the user birthday, return False.
+        personal_info = self.bot.get_personal_information(user_id)
+        if personal_info is None:
             return False
-        now = dt.datetime.now()
+        birthdate = personal_info.birthdate
+
+        now = dt.datetime.now(tz=ZoneInfo("Europe/Paris"))
         return birthdate.day == now.day and birthdate.month == now.month
 
     @command()
@@ -303,7 +292,7 @@ class Fun(Cog):
         if not inter.guild or inter.guild.id != GUILD_ID:
             return
 
-        lst = ""
+        rows: list[str] = []
         now = dt.datetime.now()
 
         def sorted_key(date: dt.datetime) -> tuple[bool, dt.datetime]:
@@ -315,18 +304,16 @@ class Fun(Cog):
 
             return passed, relative
 
-        for user_id, birthday in sorted(self.birthdates.items(), key=lambda t: sorted_key(t[1])):
-            ts: int = int(birthday.timestamp())
-            name = self.bot.ids_to_names[user_id]
+        for pi in sorted(self.bot.personal_informations, key=lambda pi: sorted_key(pi.birthdate)):
+            ts: int = int(pi.birthdate.timestamp())
+            relative = sorted_key(pi.birthdate)[1]
 
-            relative = sorted_key(birthday)[1]
-
-            l = f"{name.first} {name.last[0]}. <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)\n"
-            if len(lst + l) > 4000:
+            l = f"{pi.display} ({pi.origin}). <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)\n"
+            if sum(len(row) + 1 for row in rows) > 4000:
                 break
-            lst += l
+            rows.append(l)
 
-        embed = discord.Embed(title="Listes des prochains anniversaires", description=lst)
+        embed = discord.Embed(title="Listes des prochains anniversaires", description="\n".join(rows))
         await inter.response.send_message(embed=embed)
 
     @command()
@@ -358,18 +345,40 @@ class Fun(Cog):
             except HTTPException:
                 pass
 
+    # MAYBE: aggregate multiple birthdates in one message ?
     @tasks.loop(time=dt.time(hour=7, tzinfo=ZoneInfo("Europe/Paris")))
     async def birthday(self) -> None:
         """At 7am, check if it's someone's birthday and send a message if it is."""
-        now = dt.datetime.now()
-        for user_id, birthday in self.birthdates.items():  # iter over {user_id: birthdate}
-            if birthday.month == now.month and birthday.day == now.day:
-                # All ids from birthdates needs to be in ids_to_names. Bugs will happen otherwise.
-                name = self.bot.ids_to_names[user_id]
-                await self.general_channel.send(
-                    f"Eh ! {name.first} {name.last[0]}. a anniversaire ! Souhaitez-le lui !",
-                    view=TellHappyBirthday(user_id),  # add a button to spam (lovely) the user with mentions.
-                )
+        now = dt.datetime.now(tz=ZoneInfo("Europe/Paris"))
+
+        guild = self.bot.get_guild(GUILD_ID)
+        assert guild is not None
+
+        for pi in self.bot.personal_informations:  # iter over {user_id: birthdate}
+            if pi.birthdate.month == now.month and pi.birthdate.day == now.day:
+                if pi.discord_id is not None:
+                    try:
+                        member = guild.get_member(pi.discord_id) or await guild.fetch_member(pi.discord_id)
+                    except discord.NotFound:
+                        continue
+
+                    current_mp2i_roles = [
+                        1146835004144500746,  # MPI
+                        1146835141042393100,  # MP2I
+                        1146919905296404600,  # PSI
+                        1146921479192199299,  # MP
+                    ]
+
+                    # Dont spam old students with mentions,
+                    # but spam (lovely) current students.
+                    if any(role.id in current_mp2i_roles for role in member.roles):
+                        send_method = partial(self.general_channel.send, view=TellHappyBirthday(pi.discord_id))
+                    else:
+                        send_method = self.general_channel.send
+                else:
+                    send_method = self.general_channel.send
+
+                await send_method(f"Eh ! {pi.display} a anniversaire ! Souhaitez-le lui !")
 
 
 class TellHappyBirthday(ui.View):
