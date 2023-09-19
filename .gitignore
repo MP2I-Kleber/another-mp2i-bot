@@ -1,5 +1,5 @@
-resources/user_informations/*
-!resources/user_informations/example.csv
+resources/personal_informations/*
+!resources/personal_informations/example.csv
 data/
 
 .vscode/
