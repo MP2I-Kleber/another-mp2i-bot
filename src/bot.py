@@ -1,22 +1,21 @@
 from __future__ import annotations
 
-import json
+import csv
 import logging
 import os
+from datetime import datetime
+from glob import glob
 from sys import exit
 from typing import TYPE_CHECKING, cast
 
 import discord
 from discord.ext import commands
 
-from utils import get_first_and_last_names
 from utils.constants import GUILD_ID
 from utils.custom_command_tree import CustomCommandTree
 
 if TYPE_CHECKING:
     from discord.app_commands import AppCommand
-
-    from utils import Name
 
 
 logger = logging.getLogger(__name__)
@@ -36,21 +35,27 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        raw_names_to_ids: dict[str, int]
-        if os.path.exists("./data/names-to-ids.json"):
-            with open("./data/names-to-ids.json", "r") as f:
-                raw_names_to_ids = json.load(f)
-        else:
-            raw_names_to_ids = {}
-
-        self.ids_to_names: dict[int, Name] = {
-            id_: get_first_and_last_names(name) for name, id_ in raw_names_to_ids.items()
-        }
         self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun", "mp2i"]
+        self.personal_informations: list[PersonalInformation] = self.load_personal_informations()
 
-    @property
-    def names_to_ids(self) -> dict[Name, int]:
-        return {name: id_ for id_, name in self.ids_to_names.items()}
+    def load_personal_informations(self) -> list[PersonalInformation]:
+        result: list[PersonalInformation] = []
+
+        def read(filename: str):
+            origin = os.path.splitext(os.path.basename(filename))[0]
+            with open(csv_file, encoding="utf-8", mode="r") as f:
+                for i, row in enumerate(csv.DictReader(f)):
+                    try:
+                        yield PersonalInformation(**row, origin=origin)
+                    except ValueError as e:
+                        logger.warning(f"Row {i + 1} is invalid in {origin}.csv: {e}")
+
+        for csv_file in glob("/resources/personal_informations/*.csv"):
+            if csv_file == "/resources/personal_informations/example.csv":
+                continue
+            result.extend(read(csv_file))
+
+        return result
 
     async def setup_hook(self) -> None:
         tmp = await self.fetch_guild(GUILD_ID)
@@ -87,3 +92,33 @@ class MP2IBot(commands.Bot):
                 logger.error(f"Failed to load extension {ext}.", exc_info=e)
             else:
                 logger.info(f"Extension {ext} loaded successfully.")
+
+
+class PersonalInformation:
+    def __init__(
+        self,
+        firstname: str | None,
+        lastname: str | None,
+        nickname: str | None,
+        birthdate: str,
+        origin: str,
+    ) -> None:
+        if not any((firstname, lastname, nickname)):
+            raise ValueError("At least one of firstname, lastname or nickname must be set.")
+        self.firstname = firstname
+        self.lastname = lastname
+        self.nickname = nickname
+        self.origin = origin
+
+        self.birthdate = datetime.strptime(birthdate, r"%d-%m-%Y")
+
+    @property
+    def display(self):
+        if self.nickname:
+            return self.nickname
+        assert self.firstname is not None
+
+        parts = [self.firstname.capitalize()]
+        if self.lastname:
+            parts.append(f"{self.lastname.upper()[0]}.")
+        return " ".join(parts)
