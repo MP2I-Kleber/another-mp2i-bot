@@ -75,6 +75,8 @@ class Fun(Cog):
     gpt_history_max_size = 10
 
     def __init__(self, bot: MP2IBot) -> None:
+        self.kevin_webhook: None | discord.Webhook = None
+
         self.bot = bot
         self.messages_cache: MessagesCache = MessagesCache()
 
@@ -112,9 +114,11 @@ class Fun(Cog):
     async def cog_load(self) -> None:
         self.general_channel = cast(TextChannel, await self.bot.fetch_channel(1015172827650998352))
         self.birthday.start()
+
         async def task() -> None:
             await self.bot.wait_until_ready()
             await self.birthday()
+
         asyncio.create_task(task())
 
     async def cog_unload(self) -> None:
@@ -383,6 +387,38 @@ class Fun(Cog):
                     send_method = self.general_channel.send
 
                 await send_method(f"Eh ! {pi.display} a anniversaire ! Souhaitez-le lui !")
+
+    @tasks.loop(time=dt.time(hour=22, minute=30, tzinfo=ZoneInfo("Europe/Paris")))
+    async def kevin_say_goodnight(self) -> None:
+        """
+        During our first year, Kevin used to say goodnight to everyone at 10:30pm.
+        So now, Kevin-bot will take over this task.
+        """
+        if random.random() < 0.4:
+            return
+        if self.kevin_webhook is None:
+            wh = await self.general_channel.webhooks()
+            if not wh:
+                self.kevin_webhook = await self.general_channel.create_webhook(name="Kevin")
+            else:
+                self.kevin_webhook = wh[0]
+
+        messages = [
+            "Allez dormir les sups!",
+            "Le sommeil, c'est pas a négliger ! Au lit !",
+            "Bonne nuit, faut aller dormir",
+            "Il est l'heure d'aller se coucher!",
+            "Faites de beau rêves, c'est l'heure !",
+            "Allez, au lit !",
+            "Bonne nuit les gens !",
+            "Pensez a aller vous coucher !",
+        ]
+
+        await self.kevin_webhook.send(
+            content=random.choice(messages),
+            username="Kevin the bot",
+            avatar_url="https://cdn.discordapp.com/avatars/419840551781793802/07d949907dcaaec17429308f3312dd02.webp",
+        )
 
 
 class TellHappyBirthday(ui.View):
