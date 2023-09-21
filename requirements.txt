@@ -2,6 +2,6 @@ discord.py
 httpx
 beautifulsoup4
 typing_extensions
-pytz
+tzdata
 Pillow
 openai

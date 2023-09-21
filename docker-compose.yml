@@ -11,4 +11,5 @@ services:
     tty: true
     restart: always
     volumes:
-      - ./src/data:/app/data
+      - ./data:/app/data
+      - ./resources:/app/resources

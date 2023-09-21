@@ -8,11 +8,11 @@ import httpx
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from utils.openweathermap_api import get_weather
+from libraries.openweathermap import get_weather
 
 if TYPE_CHECKING:
     from bot import MP2IBot
-    from utils.openweathermap_api.models import WeatherResponse
+    from libraries.openweathermap.models import WeatherResponse
 
 
 LAT, LON = 48.59430090208588, 7.756978617599214
@@ -24,7 +24,7 @@ class WeatherIcon(Cog):
         self.current_weather: None | WeatherResponse = None
 
         self.icons: dict[str, bytes] = {}
-        for file_path in glob("./resources/assets/imgs/weather_icons/*.png"):
+        for file_path in glob("./resources/images/weather_icons/*.png"):
             with open(file_path, "rb") as file:
                 self.icons[path.splitext(path.basename(file_path))[0]] = file.read()
 
