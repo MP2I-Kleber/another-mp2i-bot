@@ -114,6 +114,7 @@ class Fun(Cog):
     async def cog_load(self) -> None:
         self.general_channel = cast(TextChannel, await self.bot.fetch_channel(1015172827650998352))
         self.birthday.start()
+        self.kevin_say_goodnight.start()
 
         async def task() -> None:
             await self.bot.wait_until_ready()
