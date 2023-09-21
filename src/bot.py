@@ -116,7 +116,7 @@ class PersonalInformation:
         self.nickname: str | None = nickname or None
         self.origin = origin
 
-        if not discord_id:
+        if discord_id:
             self.discord_id = int(discord_id)
         else:
             self.discord_id = None
