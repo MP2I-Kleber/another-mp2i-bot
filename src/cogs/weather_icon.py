@@ -24,7 +24,7 @@ class WeatherIcon(Cog):
         self.current_weather: None | WeatherResponse = None
 
         self.icons: dict[str, bytes] = {}
-        for file_path in glob("./resources/assets/imgs/weather_icons/*.png"):
+        for file_path in glob("./resources/images/weather_icons/*.png"):
             with open(file_path, "rb") as file:
                 self.icons[path.splitext(path.basename(file_path))[0]] = file.read()
 

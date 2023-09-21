@@ -33,7 +33,7 @@ border_color = (100, 100, 255)
 
 plus_w, plus_h = (60, 60)
 
-plus = Image.open("./resources/assets/imgs/plus.png").convert("RGBA")
+plus = Image.open("./resources/images/plus.png").convert("RGBA")
 plus = plus.resize((plus_w, plus_h), resample=Image.Resampling.LANCZOS)
 plus.paste(border_color, mask=plus)
 
@@ -52,8 +52,8 @@ class MP2IGame(Cog):
 
     @staticmethod
     def load_images_level(level_rid: int) -> tuple[Image.Image, Image.Image]:
-        first = Image.open(f"./resources/assets/imgs/mp2i_game/_{level_rid}_1.jpg")
-        second = Image.open(f"./resources/assets/imgs/mp2i_game/_{level_rid}_2.jpg")
+        first = Image.open(f"./resources/images/mp2i_game/_{level_rid}_1.jpg")
+        second = Image.open(f"./resources/images/mp2i_game/_{level_rid}_2.jpg")
 
         return (first, second)
 

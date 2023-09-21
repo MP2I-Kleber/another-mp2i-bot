@@ -51,9 +51,10 @@ class MP2IBot(commands.Bot):
                     except ValueError as e:
                         logger.warning(f"Row {i + 1} is invalid in {origin}.csv: {e}")
 
-        for csv_file in glob("/resources/personal_informations/*.csv"):
-            if csv_file == "/resources/personal_informations/example.csv":
+        for csv_file in glob("./resources/personal_informations/*.csv"):
+            if csv_file == "./resources/personal_informations/example.csv":
                 continue
+            logger.debug(f"Reading {csv_file}")  # todo : dont use fstirng in debug
             result.extend(read(csv_file))
 
         return result
@@ -120,7 +121,7 @@ class PersonalInformation:
         else:
             self.discord_id = None
 
-        self.birthdate = datetime.strptime(birthdate, r"%d-%m-%Y").astimezone(tz=ZoneInfo("Europe/Paris"))
+        self.birthdate = datetime.strptime(birthdate, r"%d/%m/%Y").astimezone(tz=ZoneInfo("Europe/Paris"))
 
     @property
     def display(self):

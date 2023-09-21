@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import os
 import random
@@ -111,7 +112,10 @@ class Fun(Cog):
     async def cog_load(self) -> None:
         self.general_channel = cast(TextChannel, await self.bot.fetch_channel(1015172827650998352))
         self.birthday.start()
-        await self.birthday()
+        async def task() -> None:
+            await self.bot.wait_until_ready()
+            await self.birthday()
+        asyncio.create_task(task())
 
     async def cog_unload(self) -> None:
         self.birthday.stop()
@@ -308,7 +312,7 @@ class Fun(Cog):
             ts: int = int(pi.birthdate.timestamp())
             relative = sorted_key(pi.birthdate)[1]
 
-            l = f"{pi.display} ({pi.origin}). <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)\n"
+            l = f"{pi.display} ({pi.origin}). <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)"
             if sum(len(row) + 1 for row in rows) > 4000:
                 break
             rows.append(l)
