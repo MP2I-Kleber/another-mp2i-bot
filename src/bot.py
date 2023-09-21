@@ -102,21 +102,21 @@ class MP2IBot(commands.Bot):
 class PersonalInformation:
     def __init__(
         self,
-        firstname: str | None,
-        lastname: str | None,
-        nickname: str | None,
-        discord_id: str | None,
+        firstname: str,
+        lastname: str,
+        nickname: str,
+        discord_id: str,
         birthdate: str,
         origin: str,
     ) -> None:
         if not any((firstname, lastname, nickname)):
             raise ValueError("At least one of firstname, lastname or nickname must be set.")
-        self.firstname = firstname
-        self.lastname = lastname
-        self.nickname = nickname
+        self.firstname: str | None = firstname or None
+        self.lastname: str | None = lastname or None
+        self.nickname: str | None = nickname or None
         self.origin = origin
 
-        if discord_id is not None:
+        if not discord_id:
             self.discord_id = int(discord_id)
         else:
             self.discord_id = None
