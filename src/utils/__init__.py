@@ -46,3 +46,18 @@ def response_constructor(response_type: ResponseType, message: str, embedded: bo
     embed.set_author(name=message, icon_url=_embed_author_icon_urls[response_type])
 
     return {"embed": embed}
+
+
+def capitalize(s: str) -> str:
+    """Capitalize names that contains a '-'
+
+    Args:
+        s: the string to capitalize
+
+    Returns:
+        A correctly capitalized string.
+
+    Example:
+        capitalize("charles-daniel") returns "Charles-Daniel"
+    """
+    return "-".join(p.capitalize() for p in s.split("-"))

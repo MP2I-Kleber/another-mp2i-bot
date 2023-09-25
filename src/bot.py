@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 import discord
 from discord.ext import commands
 
+from utils import capitalize
 from utils.constants import GUILD_ID
 from utils.custom_command_tree import CustomCommandTree
 
@@ -111,8 +112,8 @@ class PersonalInformation:
     ) -> None:
         if not any((firstname, lastname, nickname)):
             raise ValueError("At least one of firstname, lastname or nickname must be set.")
-        self.firstname: str | None = firstname or None
-        self.lastname: str | None = lastname or None
+        self.firstname: str | None = capitalize(firstname) if firstname else None
+        self.lastname: str | None = lastname.upper() if lastname else None
         self.nickname: str | None = nickname or None
         self.origin = origin
 
@@ -129,7 +130,7 @@ class PersonalInformation:
             return self.nickname
         assert self.firstname is not None
 
-        parts = [self.firstname.capitalize()]
+        parts = [self.firstname]
         if self.lastname:
-            parts.append(f"{self.lastname.upper()[0]}.")
+            parts.append(f"{self.lastname[0]}.")
         return " ".join(parts)
