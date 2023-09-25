@@ -3,12 +3,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple, Self
 
 import discord
-
-# import humanize
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from discord.utils import get
 
@@ -144,6 +142,15 @@ class CTS(Cog):
             for stop in self.stops
             if stop.name.lower().startswith(current.lower()) or current.lower() in stop.name.lower()
         ][:25]
+
+
+class NextStopsView(ui.View):
+    def __init__(self, stop_ref: str) -> None:
+        self.refresh.custom_id = f"cts_refresh_button::{stop_ref}"
+
+    @ui.button(label="Refresh", style=discord.ButtonStyle.gray, emoji="🔄")
+    async def refresh(self, inter: discord.Interaction, button: ui.Button[Self]):
+        pass
 
 
 async def setup(bot: MP2IBot):
