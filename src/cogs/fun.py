@@ -90,6 +90,7 @@ class Fun(Cog):
             533272313588613132: ["🥕"],
             777852203414454273: ["🐀"],
             293463332781031434: ["📉"],
+            547496339366215686: ["🥩"],
         }
 
         # words that trigger the bot to react with a random emoji from the list assigned to the user.
@@ -109,6 +110,7 @@ class Fun(Cog):
             ],
             533272313588613132: ["carotte", "carottes"],
             777852203414454273: ["rat", "rats", "argent", "gratuit", "sous", "paypal"],
+            547496339366215686: ["viande", "manger", "broche", "poulet", "sanglier", "steak", "faim"],
         }
 
     async def cog_load(self) -> None:
