@@ -1,6 +1,5 @@
 """
-This is a chaotic cog, regrouping all sort of fun commands.
-# TODO: split this cog into multiple cogs.
+You can communicate with ChatGPT by mentioning the bot. (Except if the API key is invalid 😧)
 """
 
 from __future__ import annotations
