@@ -1,3 +1,7 @@
+"""
+A little game where you have to find a word from 2 images.
+"""
+
 from __future__ import annotations
 
 import json
@@ -11,7 +15,7 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from PIL import Image, ImageDraw
 from typing_extensions import Self
 
-from utils import ResponseType, response_constructor
+from core.utils import ResponseType, response_constructor
 
 if TYPE_CHECKING:
     from discord import Interaction
@@ -110,10 +114,13 @@ class MP2IGame(Cog):
         )
         borders = borders.resize((borders.size[0] // 4, borders.size[1] // 4), resample=Image.Resampling.LANCZOS)
 
-        suppress_center = Image.new("RGBA", (center_circle_radius * 2 * 4,) * 2, (0, 0, 0, 0))
+        suppress_center = Image.new("RGBA", (center_circle_radius * 2 * 4,) * 2, (0, 0, 0, 0))  # type: ignore
         draw = ImageDraw.Draw(suppress_center)
-        draw.ellipse(((0, 0), (suppress_center.size[0],) * 2), fill=(0, 0, 0))
-        suppress_center = suppress_center.resize((center_circle_radius * 2,) * 2, resample=Image.Resampling.LANCZOS)
+        draw.ellipse(((0, 0), (suppress_center.size[0],) * 2), fill=(0, 0, 0))  # type: ignore
+        suppress_center = suppress_center.resize(
+            (center_circle_radius * 2,) * 2,  # type: ignore
+            resample=Image.Resampling.LANCZOS,
+        )
 
         result.paste(images[0], (space + border_width, space + border_width))
         result.paste(images[1], (result_w - image_w - space - border_width, result_h - image_h - space - border_width))

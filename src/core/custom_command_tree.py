@@ -1,3 +1,8 @@
+"""
+A custom CommandTree, it only allow to handle errors in a more convenient way.
+Every time a interaction command fails, the error is retrieved and managed here.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -5,8 +10,8 @@ from typing import TYPE_CHECKING, Any
 
 from discord.app_commands import CommandNotFound, CommandTree
 
-from utils import ResponseType, response_constructor
-from utils.errors import BaseError
+from .errors import BaseError
+from .utils import ResponseType, response_constructor
 
 if TYPE_CHECKING:
     from discord import Interaction, Invite

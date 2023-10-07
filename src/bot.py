@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-import csv
 import logging
-import os
-from datetime import datetime
-from glob import glob
 from sys import exit
 from typing import TYPE_CHECKING, cast
-from zoneinfo import ZoneInfo
 
 import discord
 from discord.ext import commands
 
-from utils import capitalize
-from utils.constants import GUILD_ID
-from utils.custom_command_tree import CustomCommandTree
+from core.constants import GUILD_ID, LOADED_EXTENSIONS
+from core.custom_command_tree import CustomCommandTree
+from core.personal_infos_loader import PersonalInformation, load_personal_informations
+from core.utils import BraceMessage as __
 
 if TYPE_CHECKING:
     from discord.app_commands import AppCommand
@@ -28,7 +24,7 @@ class MP2IBot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            command_prefix="unimplemented",  # Maybe consider use of IntegrationBot instead of AutoShardedBot
+            command_prefix=commands.when_mentioned,
             tree_cls=CustomCommandTree,
             member_cache_flags=discord.MemberCacheFlags.all(),
             chunk_guilds_at_startup=True,
@@ -37,38 +33,25 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun", "mp2i"]
-        self.personal_informations: list[PersonalInformation] = self.load_personal_informations()
-
-    def load_personal_informations(self) -> list[PersonalInformation]:
-        result: list[PersonalInformation] = []
-
-        def read(filename: str):
-            origin = os.path.splitext(os.path.basename(filename))[0]
-            with open(csv_file, encoding="utf-8", mode="r") as f:
-                for i, row in enumerate(csv.DictReader(f)):
-                    try:
-                        yield PersonalInformation(**row, origin=origin)
-                    except ValueError as e:
-                        logger.warning(f"Row {i + 1} is invalid in {origin}.csv: {e}")
-
-        for csv_file in glob("./resources/personal_informations/*.csv"):
-            if csv_file == "./resources/personal_informations/example.csv":
-                continue
-            logger.debug(f"Reading {csv_file}")  # todo : dont use fstirng in debug
-            result.extend(read(csv_file))
-
-        return result
+        self.personal_informations: list[PersonalInformation] = load_personal_informations()
 
     def get_personal_information(self, discord_id: int) -> PersonalInformation | None:
+        """Return a object containing personal informations about a user.
+
+        Args:
+            discord_id: the discord id of the user
+
+        Returns:
+            PersonalInformation: the object containing personal informations about the user
+        """
         return discord.utils.get(self.personal_informations, discord_id=discord_id)
 
     async def setup_hook(self) -> None:
-        tmp = await self.fetch_guild(GUILD_ID)
-        if not tmp:
-            logger.critical("Support server cannot be retrieved")
+        try:
+            self.guild = await self.fetch_guild(GUILD_ID)
+        except discord.Forbidden:
+            logger.critical("Support server cannot be retrieved, check the GUILD_ID constant.")
             exit(1)
-        self.guild = tmp
 
         await self.load_extensions()
         await self.sync_tree()
@@ -88,49 +71,13 @@ class MP2IBot(commands.Bot):
         logger.info(f"ID : {bot_user.id}")
 
     async def load_extensions(self) -> None:
-        for ext in self.extensions_names:
+        for ext in LOADED_EXTENSIONS:
             if not ext.startswith("cogs."):
                 ext = "cogs." + ext
 
             try:
                 await self.load_extension(ext)
             except commands.errors.ExtensionError as e:
-                logger.error(f"Failed to load extension {ext}.", exc_info=e)
+                logger.error(__("Failed to load extension {}.", ext), exc_info=e)
             else:
-                logger.info(f"Extension {ext} loaded successfully.")
-
-
-class PersonalInformation:
-    def __init__(
-        self,
-        firstname: str,
-        lastname: str,
-        nickname: str,
-        discord_id: str,
-        birthdate: str,
-        origin: str,
-    ) -> None:
-        if not any((firstname, lastname, nickname)):
-            raise ValueError("At least one of firstname, lastname or nickname must be set.")
-        self.firstname: str | None = capitalize(firstname) if firstname else None
-        self.lastname: str | None = lastname.upper() if lastname else None
-        self.nickname: str | None = nickname or None
-        self.origin = origin
-
-        if discord_id:
-            self.discord_id = int(discord_id)
-        else:
-            self.discord_id = None
-
-        self.birthdate = datetime.strptime(birthdate, r"%d/%m/%Y").astimezone(tz=ZoneInfo("Europe/Paris"))
-
-    @property
-    def display(self):
-        if self.nickname:
-            return self.nickname
-        assert self.firstname is not None
-
-        parts = [self.firstname]
-        if self.lastname:
-            parts.append(f"{self.lastname[0]}.")
-        return " ".join(parts)
+                logger.info(__("Extension {} loaded successfully.", ext))
