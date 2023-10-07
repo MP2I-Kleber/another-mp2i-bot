@@ -93,30 +93,30 @@ def sort_colles(
     return sorted(colles_datas, key=key)
 
 
-def getAllColles(filename):
+def get_all_colles(filename: str):
     # returns a list of all the collesDatas by reading the csv file
-    colles = []  # list of collesDatas
+    colles: list[ColleData] = []  # list of collesDatas
 
     with open(filename, encoding="utf-8", errors="ignore") as f:  # open file
-        CsvReader = csv.reader(f, delimiter=",")  # CSV reader
+        csv_reader = csv.reader(f, delimiter=",")  # CSV reader
 
         header = []  # header
-        dataMatrix = []  # array of all the csv data | dataMatrix[y][x] to get the data
-        for RowIndex, row in enumerate(CsvReader):  # iterate over each row
-            if RowIndex == 0:  # get the first row
+        data_matrix: list[Any] = []  # array of all the csv data | dataMatrix[y][x] to get the data
+        for i, row in enumerate(csv_reader):  # iterate over each row
+            if i == 0:  # get the first row
                 header = row
-            dataMatrix.append(row)
+            data_matrix.append(row)
 
-    for y in range(1, len(dataMatrix)):  # iterate over each colles rows
-        matiere = dataMatrix[y][0]
-        professeur = dataMatrix[y][1]
-        jour = dataMatrix[y][2]
-        heure = dataMatrix[y][3]
-        salle = dataMatrix[y][4]
+    for y in range(1, len(data_matrix)):  # iterate over each colles rows
+        matiere = data_matrix[y][0]
+        professeur = data_matrix[y][1]
+        jour = data_matrix[y][2]
+        heure = data_matrix[y][3]
+        salle = data_matrix[y][4]
 
         for x in range(5, len(header)):  # iterate over each colles columns
-            groupe = dataMatrix[y][x]
-            semaine = dataMatrix[0][x]
+            groupe = data_matrix[y][x]
+            semaine = data_matrix[0][x]
             if groupe != "":
                 colles.append(ColleData(groupe, matiere, professeur, semaine, jour, heure, salle))
 
@@ -365,7 +365,7 @@ def getGroupRecentColleData(groupe):
     if groupe == "":
         return []
 
-    colles = getAllColles(COLLOSCOPE_PATH)  # list of ColleData objects
+    colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     colles = sort_colles(colles, sort_type="temps")  # sort by time
     sortedColles = []
     currentDate = datetime.datetime.now() + datetime.timedelta(days=-1)  # date de la veille
@@ -378,7 +378,7 @@ def getGroupRecentColleData(groupe):
 
 
 def main(userGroupe, typeExport="pdf"):
-    colles = getAllColles(COLLOSCOPE_PATH)  # list of ColleData objects
+    colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     vacances = getVacances(COLLOSCOPE_PATH)
     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
