@@ -199,27 +199,32 @@ def add_one_hour(time: str) -> str:
         return str(heure + 1) + f":{temps[1]}"
 
 
-def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list):
+def export_colles(
+    export_type: Literal["pdf", "csv", "agenda", "todoist"],
+    collesDatas: list[ColleData],
+    groupe: int,
+    vacances: list[str],
+):
     pathExport = f"./exports/groupe{groupe}"
 
     if os.path.exists(pathExport) == False:
         os.mkdir(pathExport)
 
-    def simpleCSV(collesDatas: [ColleData]):
+    def simpleCSV(colles_datas: list[ColleData]):
         # write the sorted data into a csv file
         with open(os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv"), "w", newline="") as Ofile:
             writer = csv.writer(Ofile, delimiter=",")
             writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
-            for colle in collesDatas:  # écris les données de colles dans un fichier
+            for colle in colles_datas:  # écris les données de colles dans un fichier
                 data = [colle.date, colle.heure, colle.prof, colle.salle, colle.matiere]
                 writer.writerow(data)
 
         return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv")
 
-    def agenda(collesDatas: [ColleData]):
-        AgendaColle = []
-        for colle in collesDatas:
+    def agenda(colles_datas: list[ColleData]):
+        AgendaColle: list[dict[str, Any]] = []
+        for colle in colles_datas:
             AgendaColle.append(
                 {
                     "Subject": f"{colle.matiere} {colle.prof} {colle.salle}",
@@ -250,10 +255,10 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
             for colle in AgendaColle:
                 writer.writerow(colle)
 
-    def todoist(collesDatas: [ColleData]):
+    def todoist(colles_datas: list[ColleData]):
         type, priority = "task", 2
-        todoistColle = []
-        for colle in collesDatas:
+        todoistColle: list[dict[str, Any]] = []
+        for colle in colles_datas:
             todoistColle.append(
                 {
                     "TYPE": type,
@@ -290,13 +295,13 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
 
         return os.path.join(pathExport, f"todoistGroupe{groupe}.csv")
 
-    def pdfExport(collesDatas: [ColleData], vacances: [str]):
+    def pdfExport(colles_datas: list[ColleData], vacances: list[str]):
         vacanceIndex = 0
         pdf = FPDF()
         pdf.add_page()
         page_width = pdf.w - 2 * pdf.l_margin
 
-        pdf.set_font("Arial", "U", 14.0)
+        pdf.set_font("Arial", "U", 14)
         pdf.cell(page_width, 0.0, f"Colloscope groupe {groupe}", align="C")
         pdf.ln(10)
 
@@ -308,7 +313,7 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
 
         th = pdf.font_size + 2
 
-        pdf.set_font("Arial", "B", 11.0)
+        pdf.set_font("Arial", "B", 11)
         pdf.cell(10, th, txt="Id", border=1, align="C")
         pdf.cell(40, th, "Date", border=1, align="C")
         pdf.cell(20, th, "Heure", border=1, align="C")
@@ -318,11 +323,11 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
         pdf.set_font("Arial", "", 11)
         pdf.ln(th)
 
-        for i, colle in enumerate(collesDatas, 1):
+        for i, colle in enumerate(colles_datas, 1):
             if vacanceIndex < len(vacances):  # fait un saut de ligne à chaque vacances
                 if compare_dates(colle.date, vacances[vacanceIndex]):
                     pdf.ln(th * 0.5)
-                    pdf.set_font("Arial", "B", 14.0)
+                    pdf.set_font("Arial", "B", 14)
                     pdf.cell(90 + 2 * col_width, th, f"Vacances", align="C")
                     pdf.set_font("Arial", "", 11)
                     pdf.ln(th * 1.5)
@@ -339,13 +344,13 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
 
         pdf.ln(10)
 
-        pdf.set_font("Times", "", 10.0)
+        pdf.set_font("Times", "", 10)
 
         pdf.output(os.path.join(pathExport, f"ColloscopeGroupe{groupe}.pdf"), "F")
 
         return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.pdf")
 
-    match typeExport:
+    match export_type:
         case "csv":
             return simpleCSV(collesDatas)
 
@@ -393,4 +398,4 @@ def main(userGroupe, typeExport="pdf"):
     except IndexError:
         return "Aucune colle n'a été trouvé pour ce groupe"
 
-    return exportColles(typeExport, sortedColles, groupe, vacances)
+    return export_colles(typeExport, sortedColles, groupe, vacances)
