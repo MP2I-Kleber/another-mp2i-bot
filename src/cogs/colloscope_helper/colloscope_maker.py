@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+from typing import Any, Callable, Literal
 
 from fpdf import FPDF
 
@@ -69,35 +70,27 @@ class ColleData:
         return f" {self.jourSemaine} {date[0]} {monthName[ int(date[1])-1 ]}"  # date en toute lettre
 
 
-def sortColles(ColleDatas, sortType="temps"):
-    # sort the colleDatas by time
-    def SortByTime(colleDatas):
-        # return a score based on how far from the beginning of the year the colle is
-        def getTimeValue(colle):
-            return datetime.datetime.strptime(colle.date, "%d/%m/%Y").timestamp()
+def sort_colles(
+    colles_datas: list[ColleData], sort_type: Literal["temps", "prof", "groupe"] = "temps"
+) -> list[ColleData]:
+    def by_time(c: ColleData):
+        return datetime.datetime.strptime(c.date, "%d/%m/%Y").timestamp()
 
-        return sorted(colleDatas, key=getTimeValue)
+    def by_prof(c: ColleData):
+        return c.prof
 
-    def SortByProf(ColleDatas):
-        def getProfValues(colle):
-            return colle.prof
+    def by_groupe(c: ColleData):
+        return c.groupe
 
-        return sorted(ColleDatas, key=getProfValues)
-
-    def SortByGroupe(ColleDatas):
-        return sorted(ColleDatas, key=lambda colle: colle.groupe)
-
-    match sortType:
+    key: Callable[[ColleData], Any]
+    match sort_type:
         case "temps":
-            return SortByTime(ColleDatas)
-
+            key = by_time
         case "prof":
-            return SortByProf(ColleDatas)
-
+            key = by_prof
         case "groupe":
-            return SortByGroupe(ColleDatas)
-
-    Exception("Invalid sort type")
+            key = by_groupe
+    return sorted(colles_datas, key=key)
 
 
 def getAllColles(filename):
@@ -373,7 +366,7 @@ def getGroupRecentColleData(groupe):
         return []
 
     colles = getAllColles(COLLOSCOPE_PATH)  # list of ColleData objects
-    colles = sortColles(colles, sortType="temps")  # sort by time
+    colles = sort_colles(colles, sort_type="temps")  # sort by time
     sortedColles = []
     currentDate = datetime.datetime.now() + datetime.timedelta(days=-1)  # date de la veille
     currentDate = currentDate.strftime("%d/%m/%Y")
@@ -387,7 +380,7 @@ def getGroupRecentColleData(groupe):
 def main(userGroupe, typeExport="pdf"):
     colles = getAllColles(COLLOSCOPE_PATH)  # list of ColleData objects
     vacances = getVacances(COLLOSCOPE_PATH)
-    colles = sortColles(colles, sortType="temps")  # sort by time
+    colles = sort_colles(colles, sort_type="temps")  # sort by time
 
     sortedColles = []
 
