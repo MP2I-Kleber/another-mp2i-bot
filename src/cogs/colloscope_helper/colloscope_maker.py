@@ -123,36 +123,36 @@ def get_all_colles(filename: str):
     return colles
 
 
-def getVacances(filename):
+def get_vacances(filename: str) -> list[str]:
     """#### renvoie les dates de chaques vacances"""
     with open(filename, encoding="utf-8", errors="ignore") as Cfile:  # open file
-        csvReader = csv.reader(Cfile, delimiter=",")  # CSV reader
+        csv_reader = csv.reader(Cfile, delimiter=",")  # CSV reader
 
-        vacances = []  #
-        for RowIndex, row in enumerate(csvReader):  # iterate over each row
+        vacances: list[str] = []  #
+        for RowIndex, row in enumerate(csv_reader):  # iterate over each row
             if RowIndex == 0:  # get the first row
                 for i, week in enumerate(row):  # iterate over each column
                     if week.lower() == "vacances":
-                        if row[i - 1] is None:
+                        if not row[i - 1]:
                             continue  # skip empty rows
                         semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").formatDate()  # format date
-                        vacances.append(addOneWeek(semaine))  # add vacances to list
+                        vacances.append(add_one_week(semaine))  # add vacances to list
 
     return vacances
 
 
-def compareDates(date1, date2):
+def compare_dates(date1: str, date2: str) -> bool:
     """### takes in two dates of format dd/mm/yyyy
     #### True if date1 > date2 else False
     """
-    date1 = list(map(int, date1.split("/")))
-    date2 = list(map(int, date2.split("/")))
-    convert1 = datetime.datetime(date1[2], date1[1], date1[0])
-    convert2 = datetime.datetime(date2[2], date2[1], date2[0])
+    ldate1 = list(map(int, date1.split("/")))
+    ldate2 = list(map(int, date2.split("/")))
+    convert1 = datetime.datetime(ldate1[2], ldate1[1], ldate1[0])
+    convert2 = datetime.datetime(ldate2[2], ldate2[1], ldate2[0])
     return convert1 > convert2
 
 
-def addOneWeek(time):
+def add_one_week(time: str) -> str:
     """### Add one week
     #### Args :
         time : string dd/mm/yyyy
@@ -163,7 +163,7 @@ def addOneWeek(time):
     return convert1.strftime("%d/%m/%Y")
 
 
-def convertHour(time):
+def convert_hour(time: str) -> str:
     """Convertie l'heure francaises en heures anglaise
     Ex: 10h00 -> 10:00 AM
         18h00 -> 6:00 PM
@@ -184,7 +184,7 @@ def convertHour(time):
         return str(heure) + f":{temps[1]} AM"
 
 
-def addOneHour(time):
+def add_one_hour(time: str) -> str:
     """Ajoute une heure à l'heure donnée (pas de colle a minuit donc flemme)
 
     Args:
@@ -224,9 +224,9 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
                 {
                     "Subject": f"{colle.matiere} {colle.prof} {colle.salle}",
                     "Start Date": colle.date,
-                    "Start Time": convertHour(colle.heure),
+                    "Start Time": convert_hour(colle.heure),
                     "End Date": colle.date,
-                    "End Time": addOneHour(convertHour(colle.heure)),
+                    "End Time": add_one_hour(convert_hour(colle.heure)),
                     "All Day Event": False,
                     "Description": f"Colle de {colle.matiere} avec {colle.prof} en {colle.salle} a {colle.heure}",
                     "Location": colle.salle,
@@ -320,7 +320,7 @@ def exportColles(typeExport, collesDatas: ColleData, groupe: int, vacances: list
 
         for i, colle in enumerate(collesDatas, 1):
             if vacanceIndex < len(vacances):  # fait un saut de ligne à chaque vacances
-                if compareDates(colle.date, vacances[vacanceIndex]):
+                if compare_dates(colle.date, vacances[vacanceIndex]):
                     pdf.ln(th * 0.5)
                     pdf.set_font("Arial", "B", 14.0)
                     pdf.cell(90 + 2 * col_width, th, f"Vacances", align="C")
@@ -372,14 +372,14 @@ def getGroupRecentColleData(groupe):
     currentDate = currentDate.strftime("%d/%m/%Y")
 
     for data in colles:
-        if data.groupe == groupe and compareDates(data.date, currentDate):
+        if data.groupe == groupe and compare_dates(data.date, currentDate):
             sortedColles.append(data)
     return sortedColles
 
 
 def main(userGroupe, typeExport="pdf"):
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
-    vacances = getVacances(COLLOSCOPE_PATH)
+    vacances = get_vacances(COLLOSCOPE_PATH)
     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
     sortedColles = []
