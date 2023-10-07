@@ -12,9 +12,9 @@ from zoneinfo import ZoneInfo
 import discord
 from discord.ext import commands
 
-from utils import capitalize
-from utils.constants import GUILD_ID
-from utils.custom_command_tree import CustomCommandTree
+from core.constants import GUILD_ID
+from core.custom_command_tree import CustomCommandTree
+from core.utils import capitalize
 
 if TYPE_CHECKING:
     from discord.app_commands import AppCommand

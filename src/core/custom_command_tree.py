@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any
 
 from discord.app_commands import CommandNotFound, CommandTree
 
-from utils import ResponseType, response_constructor
-from utils.errors import BaseError
+from .errors import BaseError
+from .utils import ResponseType, response_constructor
 
 if TYPE_CHECKING:
     from discord import Interaction, Invite

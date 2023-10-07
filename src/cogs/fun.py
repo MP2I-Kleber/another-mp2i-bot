@@ -19,7 +19,7 @@ from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from typing_extensions import Self
 
-from utils.constants import GUILD_ID
+from core.constants import GUILD_ID
 
 if TYPE_CHECKING:
     from discord import Interaction, Message

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from utils.constants import GUILD_ID
+from core.constants import GUILD_ID
 
 if TYPE_CHECKING:
     from discord import Interaction

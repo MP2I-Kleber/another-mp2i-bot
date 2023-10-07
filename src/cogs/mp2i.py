@@ -11,7 +11,7 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from PIL import Image, ImageDraw
 from typing_extensions import Self
 
-from utils import ResponseType, response_constructor
+from core.utils import ResponseType, response_constructor
 
 if TYPE_CHECKING:
     from discord import Interaction

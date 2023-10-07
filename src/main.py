@@ -3,7 +3,7 @@ import sys
 from os import environ
 
 from bot import MP2IBot
-from utils.logger import create_logger
+from core.logger import create_logger
 
 logger = create_logger(level=getattr(logging, environ.get("LOG_LEVEL", "INFO")))
 logging.getLogger("discord").setLevel(logging.INFO)
