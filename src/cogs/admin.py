@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from core.constants import GUILD_ID
+from core.constants import GUILD_ID, LOADED_EXTENSIONS
 
 if TYPE_CHECKING:
     from discord import Interaction
@@ -36,7 +36,7 @@ class CTS(Cog):  # TODO: add checkers
     async def extension_autocompleter(self, inter: Interaction, current: str) -> list[app_commands.Choice[str]]:
         return [
             app_commands.Choice(name=ext, value="cogs." * (not ext.startswith("cogs.")) + ext)
-            for ext in self.bot.extensions_names
+            for ext in LOADED_EXTENSIONS
             if ext.startswith(current)
         ]
 

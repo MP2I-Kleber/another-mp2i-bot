@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, cast
 import discord
 from discord.ext import commands
 
-from core.constants import GUILD_ID
+from core.constants import GUILD_ID, LOADED_EXTENSIONS
 from core.custom_command_tree import CustomCommandTree
 from core.personal_infos_loader import PersonalInformation, load_personal_informations
 from core.utils import BraceMessage as __
@@ -33,7 +33,6 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.extensions_names: list[str] = ["weather_icon", "cts", "restauration", "fun", "mp2i"]
         self.personal_informations: list[PersonalInformation] = load_personal_informations()
 
     def get_personal_information(self, discord_id: int) -> PersonalInformation | None:
@@ -72,7 +71,7 @@ class MP2IBot(commands.Bot):
         logger.info(f"ID : {bot_user.id}")
 
     async def load_extensions(self) -> None:
-        for ext in self.extensions_names:
+        for ext in LOADED_EXTENSIONS:
             if not ext.startswith("cogs."):
                 ext = "cogs." + ext
 
