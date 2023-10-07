@@ -202,7 +202,7 @@ def add_one_hour(time: str) -> str:
 def export_colles(
     export_type: Literal["pdf", "csv", "agenda", "todoist"],
     collesDatas: list[ColleData],
-    groupe: int,
+    groupe: str,
     vacances: list[str],
 ):
     pathExport = f"./exports/groupe{groupe}"
@@ -366,13 +366,13 @@ def export_colles(
     Exception("Invalid sort type")
 
 
-def getGroupRecentColleData(groupe):
+def get_group_recent_colle_data(groupe: str) -> list[ColleData]:
     if groupe == "":
         return []
 
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     colles = sort_colles(colles, sort_type="temps")  # sort by time
-    sortedColles = []
+    sortedColles: list[ColleData] = []
     currentDate = datetime.datetime.now() + datetime.timedelta(days=-1)  # date de la veille
     currentDate = currentDate.strftime("%d/%m/%Y")
 
@@ -382,20 +382,20 @@ def getGroupRecentColleData(groupe):
     return sortedColles
 
 
-def main(userGroupe, typeExport="pdf"):
+def main(user_groupe: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     vacances = get_vacances(COLLOSCOPE_PATH)
     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
-    sortedColles = []
+    sorted_colles: list[ColleData] = []
 
     for data in colles:
-        if data.groupe == userGroupe:
-            sortedColles.append(data)
+        if data.groupe == user_groupe:
+            sorted_colles.append(data)
 
     try:
-        groupe = sortedColles[0].groupe
+        groupe = sorted_colles[0].groupe
     except IndexError:
         return "Aucune colle n'a été trouvé pour ce groupe"
 
-    return export_colles(typeExport, sortedColles, groupe, vacances)
+    return export_colles(export_type, sorted_colles, groupe, vacances)
