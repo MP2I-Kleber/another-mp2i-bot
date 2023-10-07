@@ -1,4 +1,11 @@
-# inspired by https://github.com/Rapptz/discord.py/blob/master/discord/client.py
+"""
+This module contains the logger used by the bot.
+It is based on the logger used by Rapptz in discord.py.
+https://github.com/Rapptz/discord.py/blob/master/discord/client.py
+
+You should not have to change anything here.
+"""
+
 
 import logging
 import os
@@ -21,7 +28,6 @@ def stream_supports_color(stream: Any) -> bool:
 
 
 class _ColorFormatter(logging.Formatter):
-
     # ANSI codes are a bit weird to decipher if you're unfamiliar with them, so here's a refresher
     # It starts off with a format like \x1b[XXXm where XXX is a semicolon separated list of commands
     # The important ones here relate to colour.

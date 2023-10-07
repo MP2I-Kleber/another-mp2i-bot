@@ -1,3 +1,8 @@
+"""
+A custom CommandTree, it only allow to handle errors in a more convenient way.
+Every time a interaction command fails, the error is retrieved and managed here.
+"""
+
 from __future__ import annotations
 
 import logging

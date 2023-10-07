@@ -1,3 +1,7 @@
+"""
+All custom errors used, to get more convenient error messages.
+"""
+
 from __future__ import annotations
 
 from discord.app_commands import errors
