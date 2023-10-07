@@ -1,3 +1,7 @@
+"""
+Everything related to the CTS API & commands.
+"""
+
 from __future__ import annotations
 
 import logging

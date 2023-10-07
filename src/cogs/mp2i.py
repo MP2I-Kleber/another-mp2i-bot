@@ -1,3 +1,7 @@
+"""
+A little game where you have to find a word from 2 images.
+"""
+
 from __future__ import annotations
 
 import json

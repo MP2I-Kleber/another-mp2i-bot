@@ -1,3 +1,7 @@
+"""
+This cog updates the server icon to match the current weather in Strasbourg.
+"""
+
 from __future__ import annotations
 
 from glob import glob

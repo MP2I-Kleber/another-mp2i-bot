@@ -1,3 +1,7 @@
+"""
+This cog will check the restauration page of the school website, and post the menu on Discord.
+"""
+
 from __future__ import annotations
 
 import io

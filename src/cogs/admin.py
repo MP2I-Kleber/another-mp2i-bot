@@ -1,3 +1,8 @@
+"""
+Admins commands. This extension should NOT be loaded on production.
+Allow to dynamically reload extensions and sync the tree, to avoid restarting the bot.
+"""
+
 from __future__ import annotations
 
 import logging
