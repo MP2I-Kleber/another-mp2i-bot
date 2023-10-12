@@ -9,9 +9,10 @@ import re
 from os import path
 from typing import TYPE_CHECKING
 
+import discord
 import httpx
 from bs4 import BeautifulSoup
-from discord import HTTPException, TextChannel
+from discord import HTTPException, TextChannel, app_commands
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
@@ -102,6 +103,20 @@ class Restauration(Cog):
                 await channel.send("\n".join(menus))
             except HTTPException:
                 pass
+
+    @app_commands.command(name="allergenes", description="Affiche les allergènes du menu du jour.")
+    async def allergen(self, inter: discord.Interaction):
+        _, allergens = await self.get_imgs()
+        bn = "\n"
+        await inter.response.send_message(
+            (
+                "Voici les allergènes du menu du jour :\n"
+                f"{bn.join(allergens)}"
+                "\n\nS'ils ne sont pas à jour, c'est que le lycée ne les a pas publié.\n"
+                "Attention : les allergènes sont susceptibles d'être modifiés, merci de se référer au panneau"
+                " d'affichage à la restauration scolaire."
+            )
+        )
 
 
 async def setup(bot: MP2IBot):
