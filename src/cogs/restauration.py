@@ -31,7 +31,6 @@ class Restauration(Cog):
         self.already_posted: list[str] = self.read_restauration_file()
 
     async def cog_load(self) -> None:
-        await self.check_menu()
         self.check_menu.start()
 
     async def cog_unload(self) -> None:
@@ -91,6 +90,9 @@ class Restauration(Cog):
         """Post the menu if there is a new one, checked every hour."""
         menus, _ = await self.get_imgs()
         menus = [m for m in menus if m not in self.already_posted]  # filter with only new ones.
+
+        if not menus:
+            return
         for img_link in menus:
             self.add_restauration_file(img_link)
 
