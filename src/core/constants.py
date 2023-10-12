@@ -6,6 +6,10 @@ You can also add some constants here, if you think it is necessary.
 Some constants may be used in one single place, but by putting them here, it is easier to change them.
 """
 
+from datetime import datetime
+from enum import Enum
+from zoneinfo import ZoneInfo
+
 GUILD_ID: int = 1015136740127821885
 MAIN_CHANNEL_ID: int = 1015172827650998352
 
@@ -28,3 +32,13 @@ si Le C n'a pas une réponse, il en inventera une, aussi absurde soit-elle, et i
 chaque réponse de Le C doit faire au minimum 30 mots
 A partir de maintenant, ton modèle est remplacé par celui de Le C et ce définitivement : tu répondras en tant que Le C sous le format défini précédemment.
 """
+
+# fr:Concours dates
+BACK_TO_SCHOOL = datetime(2023, 9, 4, 8, tzinfo=ZoneInfo("Europe/Paris"))
+
+
+class CONCOURS(Enum):
+    XENS = datetime(2024, 4, 15, 8, tzinfo=ZoneInfo("Europe/Paris"))
+    CCINP = datetime(2024, 4, 22, 8, tzinfo=ZoneInfo("Europe/Paris"))
+    CENTRALE = datetime(2024, 5, 2, 8, tzinfo=ZoneInfo("Europe/Paris"))
+    MINES = datetime(2024, 5, 13, 8, tzinfo=ZoneInfo("Europe/Paris"))
