@@ -4,21 +4,22 @@ This cog will check the restauration page of the school website, and post the me
 
 from __future__ import annotations
 
-import io
 import json
+import re
 from os import path
 from typing import TYPE_CHECKING
-from zipfile import ZipFile
 
 import httpx
-from bs4 import BeautifulSoup, Tag
-from discord import File, HTTPException, TextChannel
+from bs4 import BeautifulSoup
+from discord import HTTPException, TextChannel
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
 if TYPE_CHECKING:
     from bot import MP2IBot
 
+
+IMAGES_REGEX = re.compile(r"https://lycee-kleber.com.fr/wp-content/uploads/\d{4}/\d{2}/([^.]+).jpg")
 RESTAURATION_PATH = "./data/restauration.json"
 
 
@@ -62,20 +63,34 @@ class Restauration(Cog):
         with open(RESTAURATION_PATH, "r") as f:
             return json.load(f)
 
+    async def get_imgs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """Scrap the website to get the menu and allergenes images.
 
-    @tasks.loop(minutes=60)
-    async def check_menu(self) -> None:
+        Returns:
+            A tuple with fr:MENUs, and a second tuple with fr:ALLERGENES.
+        """
         async with httpx.AsyncClient() as client:
             result = await client.get("https://lycee-kleber.com.fr/restauration")
             page = result.text
 
         scrap = BeautifulSoup(page, "html.parser")
-        img_link = scrap.body.div.div.div.section[3].div.div.div.div.div.div[3].div.div.h2[2].strong.a.get('href')
+        element = scrap.find_all("a", href=lambda r: bool(IMAGES_REGEX.match(r)))
+        links: list[str] = [e.get("href") for e in element]
 
+        menus: tuple[str, ...] = tuple(
+            l for l in links if (m := IMAGES_REGEX.match(l)) and m.group(1).lower().startswith("menu")
+        )
+        allergenes: tuple[str, ...] = tuple(
+            l for l in links if (m := IMAGES_REGEX.match(l)) and m.group(1).lower().startswith("allergenes")
+        )
+        return menus, allergenes
 
-        if img_link in self.already_posted:
-            return
-        else:
+    @tasks.loop(minutes=60)
+    async def check_menu(self) -> None:
+        """Post the menu if there is a new one, checked every hour."""
+        menus, _ = await self.get_imgs()
+        menus = [m for m in menus if m not in self.already_posted]  # filter with only new ones.
+        for img_link in menus:
             self.add_restauration_file(img_link)
 
         channels: list[TextChannel] = [
@@ -84,9 +99,10 @@ class Restauration(Cog):
 
         for channel in channels:
             try:
-                await channel.send(img_link)
+                await channel.send("\n".join(menus))
             except HTTPException:
                 pass
+
 
 async def setup(bot: MP2IBot):
     await bot.add_cog(Restauration(bot))
