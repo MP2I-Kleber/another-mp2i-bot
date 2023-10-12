@@ -71,7 +71,7 @@ class Restauration(Cog):
             A tuple with fr:MENUs, and a second tuple with fr:ALLERGENES.
         """
         async with httpx.AsyncClient() as client:
-            result = await client.get("https://lycee-kleber.com.fr/restauration")
+            result = await client.get("https://lycee-kleber.com.fr/restauration", follow_redirects=True)
             page = result.text
 
         scrap = BeautifulSoup(page, "html.parser")
