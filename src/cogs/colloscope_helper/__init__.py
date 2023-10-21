@@ -51,7 +51,7 @@ class PlanningHelper(
     @app_commands.rename(group="groupe", nb="nombre")
     @app_commands.describe(group="Votre groupe de colle", nb="Le nombre de colle à afficher")
     async def next_colle(self, inter: discord.Interaction, group: int, nb: int = 5):
-        sorted_colles = cm.get_group_recent_colle_data(str(group))  # reçois le colloscope trié
+        sorted_colles = cm.get_group_upcoming_colles(str(group))  # reçois le colloscope trié
         outputText = f"### __Liste des {min(nb, len(sorted_colles), 12 )} prochaines Colles du groupe {group} :__\n"
 
         for i in range(min(nb, len(sorted_colles), 12)):  # affiche le bon nombre de fois les colles

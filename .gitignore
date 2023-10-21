@@ -1,6 +1,7 @@
 resources/personal_informations/*
 !resources/personal_informations/example.csv
 data/
+resources/colloscope.csv
 
 .vscode/
 .fleet/

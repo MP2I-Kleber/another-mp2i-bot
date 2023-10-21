@@ -166,7 +166,7 @@ def export_colles(
     group: str,
     holidays: list[dt.date],
 ):
-    export_path = f"./exports/groupe{group}"
+    export_path = f"./groupe{group}"
 
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
@@ -321,7 +321,7 @@ def export_colles(
             return todoist_method()
 
 
-def get_group_recent_colle_data(group: str) -> list[ColleData]:
+def get_group_upcoming_colles(group: str) -> list[ColleData]:
     if group == "":
         return []
 
@@ -333,20 +333,13 @@ def get_group_recent_colle_data(group: str) -> list[ColleData]:
     return filtered_colles
 
 
-def main(user_groupe: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
+def main(group: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
-    vacances = get_holidays(COLLOSCOPE_PATH)
+    holidays = get_holidays(COLLOSCOPE_PATH)
     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
-    sorted_colles: list[ColleData] = []
+    filtered_colles = [c for c in colles if c.group == group]
+    if not filtered_colles:
+        raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
 
-    for data in colles:
-        if data.group == user_groupe:
-            sorted_colles.append(data)
-
-    try:
-        groupe = sorted_colles[0].group
-    except IndexError:
-        return "Aucune colle n'a été trouvé pour ce groupe"
-
-    return export_colles(export_type, sorted_colles, groupe, vacances)
+    return export_colles(export_type, filtered_colles, group, holidays)
