@@ -1,5 +1,5 @@
 import csv
-import datetime
+import datetime as dt
 import os
 from dataclasses import dataclass
 from typing import Any, Callable, Literal
@@ -23,13 +23,15 @@ class ColleData:
     def __post_init__(self):
         self.week_day = self.week_day.lower()
 
-        self.date = self.formatDate()
+        self.date: dt.date = self.get_date()
         self.dateLetters = self.formatDateLetters()
 
     def __str__(self):
-        return f"Le {self.date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.hour}"
+        return (
+            f"Le {self.str_date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.hour}"
+        )
 
-    def formatDate(self):
+    def get_date(self) -> dt.date:
         week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 
         # dates are formatted like this: "dd/mm-dd/mm"
@@ -41,10 +43,14 @@ class ColleData:
         else:
             year = SCHOLAR_YEAR + 1
 
-        date = datetime.date(year, month, day)
-        delta = datetime.timedelta(days=week_days.index(self.week_day))
+        date = dt.date(year, month, day)
+        delta = dt.timedelta(days=week_days.index(self.week_day))
 
-        return (date + delta).strftime("%d/%m/%Y")
+        return date + delta
+
+    @property
+    def str_date(self) -> str:
+        return self.date.strftime("%d/%m/%Y")
 
     def formatDateLetters(self):
         monthName = [
@@ -61,7 +67,7 @@ class ColleData:
             "novembre",
             "decembre",
         ]
-        date = self.date.split("/")
+        date = self.str_date.split("/")
 
         return f" {self.week_day} {date[0]} {monthName[ int(date[1])-1 ]}"  # date en toute lettre
 
@@ -70,7 +76,7 @@ def sort_colles(
     colles_datas: list[ColleData], sort_type: Literal["temps", "prof", "groupe"] = "temps"
 ) -> list[ColleData]:
     def by_time(c: ColleData):
-        return datetime.datetime.strptime(c.date, "%d/%m/%Y").timestamp()
+        return dt.datetime.strptime(c.str_date, "%d/%m/%Y").timestamp()
 
     def by_prof(c: ColleData):
         return c.professor
@@ -131,7 +137,7 @@ def get_vacances(filename: str) -> list[str]:
                     if week.lower() == "vacances":
                         if not row[i - 1]:
                             continue  # skip empty rows
-                        semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").formatDate()  # format date
+                        semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").get_date()  # format date
                         vacances.append(add_one_week(semaine))  # add vacances to list
 
     return vacances
@@ -143,8 +149,8 @@ def compare_dates(date1: str, date2: str) -> bool:
     """
     ldate1 = list(map(int, date1.split("/")))
     ldate2 = list(map(int, date2.split("/")))
-    convert1 = datetime.datetime(ldate1[2], ldate1[1], ldate1[0])
-    convert2 = datetime.datetime(ldate2[2], ldate2[1], ldate2[0])
+    convert1 = dt.datetime(ldate1[2], ldate1[1], ldate1[0])
+    convert2 = dt.datetime(ldate2[2], ldate2[1], ldate2[0])
     return convert1 > convert2
 
 
@@ -154,8 +160,8 @@ def add_one_week(time: str) -> str:
         time : string dd/mm/yyyy
     """
     date1 = list(map(int, time.split("/")))
-    convert1 = datetime.datetime(date1[2], date1[1], date1[0])
-    convert1 = convert1 + datetime.timedelta(days=7)
+    convert1 = dt.datetime(date1[2], date1[1], date1[0])
+    convert1 = convert1 + dt.timedelta(days=7)
     return convert1.strftime("%d/%m/%Y")
 
 
@@ -213,7 +219,7 @@ def export_colles(
             writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
             for colle in colles_datas:  # écris les données de colles dans un fichier
-                data = [colle.date, colle.hour, colle.professor, colle.classroom, colle.subject]
+                data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
                 writer.writerow(data)
 
         return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv")
@@ -224,9 +230,9 @@ def export_colles(
             AgendaColle.append(
                 {
                     "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
-                    "Start Date": colle.date,
+                    "Start Date": colle.str_date,
                     "Start Time": convert_hour(colle.hour),
-                    "End Date": colle.date,
+                    "End Date": colle.str_date,
                     "End Time": add_one_hour(convert_hour(colle.hour)),
                     "All Day Event": False,
                     "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.hour}",
@@ -264,7 +270,7 @@ def export_colles(
                     "INDENT": "",
                     "AUTHOR": "",
                     "RESPONSIBLE": "",
-                    "DATE": colle.date + " " + colle.hour,
+                    "DATE": colle.str_date + " " + colle.hour,
                     "DATE_LANG": "fr",
                     "TIMEZONE": "Europe/Paris",
                 }
@@ -321,7 +327,7 @@ def export_colles(
 
         for i, colle in enumerate(colles_datas, 1):
             if vacanceIndex < len(vacances):  # fait un saut de ligne à chaque vacances
-                if compare_dates(colle.date, vacances[vacanceIndex]):
+                if compare_dates(colle.str_date, vacances[vacanceIndex]):
                     pdf.ln(th * 0.5)
                     pdf.set_font("Arial", "B", 14)
                     pdf.cell(90 + 2 * col_width, th, f"Vacances", align="C")
@@ -369,11 +375,11 @@ def get_group_recent_colle_data(groupe: str) -> list[ColleData]:
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     colles = sort_colles(colles, sort_type="temps")  # sort by time
     sortedColles: list[ColleData] = []
-    currentDate = datetime.datetime.now() + datetime.timedelta(days=-1)  # date de la veille
+    currentDate = dt.datetime.now() + dt.timedelta(days=-1)  # date de la veille
     currentDate = currentDate.strftime("%d/%m/%Y")
 
     for data in colles:
-        if data.group == groupe and compare_dates(data.date, currentDate):
+        if data.group == groupe and compare_dates(data.str_date, currentDate):
             sortedColles.append(data)
     return sortedColles
 
