@@ -24,7 +24,6 @@ class ColleData:
         self.week_day = self.week_day.lower()
 
         self.date: dt.date = self.get_date()
-        self.dateLetters = self.formatDateLetters()
 
     def __str__(self):
         return (
@@ -52,46 +51,41 @@ class ColleData:
     def str_date(self) -> str:
         return self.date.strftime("%d/%m/%Y")
 
-    def formatDateLetters(self):
+    @property
+    def long_str_date(self) -> str:
+        """
+        Return the date in a human readable format :
+        Ex: "Lundi 10 janvier"
+        """
         monthName = [
             "janvier",
-            "fevrier",
+            "février",
             "mars",
             "avril",
             "mai",
             "juin",
             "juillet",
-            "aout",
+            "août",
             "septembre",
             "octobre",
             "novembre",
-            "decembre",
+            "décembre",
         ]
-        date = self.str_date.split("/")
 
-        return f" {self.week_day} {date[0]} {monthName[ int(date[1])-1 ]}"  # date en toute lettre
+        return f"{self.week_day} {self.date.day} {monthName[self.date.month - 1]}"
 
 
 def sort_colles(
     colles_datas: list[ColleData], sort_type: Literal["temps", "prof", "groupe"] = "temps"
 ) -> list[ColleData]:
-    def by_time(c: ColleData):
-        return dt.datetime.strptime(c.str_date, "%d/%m/%Y").timestamp()
-
-    def by_prof(c: ColleData):
-        return c.professor
-
-    def by_groupe(c: ColleData):
-        return c.group
-
     key: Callable[[ColleData], Any]
     match sort_type:
         case "temps":
-            key = by_time
+            key = lambda c: c.date
         case "prof":
-            key = by_prof
+            key = lambda c: c.professor
         case "groupe":
-            key = by_groupe
+            key = lambda c: c.group
     return sorted(colles_datas, key=key)
 
 
@@ -137,8 +131,8 @@ def get_vacances(filename: str) -> list[str]:
                     if week.lower() == "vacances":
                         if not row[i - 1]:
                             continue  # skip empty rows
-                        semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").get_date()  # format date
-                        vacances.append(add_one_week(semaine))  # add vacances to list
+                        # semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").get_date()  # format date
+                        # vacances.append(add_one_week(semaine))  # add vacances to list
 
     return vacances
 
@@ -336,7 +330,7 @@ def export_colles(
                     vacanceIndex += 1
             pdf.cell(10, th, str(i), border=1, align="C")
             pdf.set_font("Arial", "", 9)
-            pdf.cell(40, th, colle.dateLetters, border=1, align="C")
+            pdf.cell(40, th, colle.long_str_date, border=1, align="C")
             pdf.set_font("Arial", "", 11)
             pdf.cell(20, th, colle.hour, border=1, align="C")
             pdf.cell(col_width * 0.75, th, colle.professor, border=1, align="C")
