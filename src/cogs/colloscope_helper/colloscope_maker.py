@@ -6,7 +6,7 @@ from typing import Any, Callable, Literal
 
 from fpdf import FPDF
 
-SCOLAR_YEAR = 2023  # année de la rentrée
+SCHOLAR_YEAR = 2023  # année de la rentrée
 COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
 
 
@@ -37,20 +37,14 @@ class ColleData:
         day, month = map(int, self.week.split("-")[0].split("/"))
 
         if int(month) > 8:
-            year = SCOLAR_YEAR
+            year = SCHOLAR_YEAR
         else:
-            year = SCOLAR_YEAR + 1
+            year = SCHOLAR_YEAR + 1
 
-        jour = datetime.date(year, month, day)
+        date = datetime.date(year, month, day)
+        delta = datetime.timedelta(days=week_days.index(self.week_day))
 
-        delta_jour = datetime.timedelta(days=0)
-
-        for j in enumerate(week_days):
-            if j[1] == self.week_day:
-                delta_jour = datetime.timedelta(days=j[0])
-                break
-
-        return (jour + delta_jour).strftime("%d/%m/%Y")
+        return (date + delta).strftime("%d/%m/%Y")
 
     def formatDateLetters(self):
         monthName = [
