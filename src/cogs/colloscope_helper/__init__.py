@@ -56,7 +56,7 @@ class PlanningHelper(
 
         for i in range(min(nb, len(sorted_colles), 12)):  # affiche le bon nombre de fois les colles
             date = sorted_colles[i].dateLetters
-            outputText += f"**{date.title()} : {sorted_colles[i].heure}** - __{sorted_colles[i].matiere}__ - en {sorted_colles[i].salle} avec {sorted_colles[i].prof}\n"
+            outputText += f"**{date.title()} : {sorted_colles[i].hour}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
         await inter.response.send_message(outputText)
 
 

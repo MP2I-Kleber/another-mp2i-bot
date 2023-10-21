@@ -1,50 +1,52 @@
 import csv
 import datetime
 import os
+from dataclasses import dataclass
 from typing import Any, Callable, Literal
 
 from fpdf import FPDF
 
-ANNEE_SCOLAIRE = 2023  # année de la rentrée
+SCOLAR_YEAR = 2023  # année de la rentrée
 COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
 
 
+@dataclass
 class ColleData:
-    # This class contains the information of a single colle
-    def __init__(self, groupe: str, matiere: str, prof: str, semaine: str, jourSemaine: str, heure: str, salle: str):
-        self.groupe = groupe
+    group: str
+    subject: str
+    professor: str
+    week: str
+    week_day: str
+    hour: str
+    classroom: str
 
-        self.matiere = matiere
-        self.prof = prof
-        self.semaine = semaine
-        self.jourSemaine = jourSemaine.lower()
-        self.heure = heure
-        self.salle = salle
+    def __post_init__(self):
+        self.week_day = self.week_day.lower()
 
         self.date = self.formatDate()
         self.dateLetters = self.formatDateLetters()
 
-    def __str__(self):  # what this class return whene printed
-        return f"Le {self.date}, passe le groupe {self.groupe} en {self.salle} avec {self.prof} à {self.heure}"
+    def __str__(self):
+        return f"Le {self.date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.hour}"
 
     def formatDate(self):
-        jourSemaines = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
+        week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 
-        jourInt, moisInt = map(
-            int, self.semaine.split("-")[0].split("/")
-        )  # get the day and month of the first day of the week
+        # dates are formatted like this: "dd/mm-dd/mm"
+        # we only care about the first day of the week
+        day, month = map(int, self.week.split("-")[0].split("/"))
 
-        if int(moisInt) > 8:
-            annee = ANNEE_SCOLAIRE
+        if int(month) > 8:
+            year = SCOLAR_YEAR
         else:
-            annee = ANNEE_SCOLAIRE + 1
+            year = SCOLAR_YEAR + 1
 
-        jour = datetime.date(annee, moisInt, jourInt)
+        jour = datetime.date(year, month, day)
 
         delta_jour = datetime.timedelta(days=0)
 
-        for j in enumerate(jourSemaines):
-            if j[1] == self.jourSemaine:
+        for j in enumerate(week_days):
+            if j[1] == self.week_day:
                 delta_jour = datetime.timedelta(days=j[0])
                 break
 
@@ -67,7 +69,7 @@ class ColleData:
         ]
         date = self.date.split("/")
 
-        return f" {self.jourSemaine} {date[0]} {monthName[ int(date[1])-1 ]}"  # date en toute lettre
+        return f" {self.week_day} {date[0]} {monthName[ int(date[1])-1 ]}"  # date en toute lettre
 
 
 def sort_colles(
@@ -77,10 +79,10 @@ def sort_colles(
         return datetime.datetime.strptime(c.date, "%d/%m/%Y").timestamp()
 
     def by_prof(c: ColleData):
-        return c.prof
+        return c.professor
 
     def by_groupe(c: ColleData):
-        return c.groupe
+        return c.group
 
     key: Callable[[ColleData], Any]
     match sort_type:
@@ -217,7 +219,7 @@ def export_colles(
             writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
             for colle in colles_datas:  # écris les données de colles dans un fichier
-                data = [colle.date, colle.heure, colle.prof, colle.salle, colle.matiere]
+                data = [colle.date, colle.hour, colle.professor, colle.classroom, colle.subject]
                 writer.writerow(data)
 
         return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv")
@@ -227,14 +229,14 @@ def export_colles(
         for colle in colles_datas:
             AgendaColle.append(
                 {
-                    "Subject": f"{colle.matiere} {colle.prof} {colle.salle}",
+                    "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
                     "Start Date": colle.date,
-                    "Start Time": convert_hour(colle.heure),
+                    "Start Time": convert_hour(colle.hour),
                     "End Date": colle.date,
-                    "End Time": add_one_hour(convert_hour(colle.heure)),
+                    "End Time": add_one_hour(convert_hour(colle.hour)),
                     "All Day Event": False,
-                    "Description": f"Colle de {colle.matiere} avec {colle.prof} en {colle.salle} a {colle.heure}",
-                    "Location": colle.salle,
+                    "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.hour}",
+                    "Location": colle.classroom,
                 }
             )
 
@@ -262,13 +264,13 @@ def export_colles(
             todoistColle.append(
                 {
                     "TYPE": type,
-                    "CONTENT": f"Colle de {colle.matiere} avec {colle.prof}",
-                    "DESCRIPTION": f"Salle {colle.salle}",
+                    "CONTENT": f"Colle de {colle.subject} avec {colle.professor}",
+                    "DESCRIPTION": f"Salle {colle.classroom}",
                     "PRIORITY": priority,
                     "INDENT": "",
                     "AUTHOR": "",
                     "RESPONSIBLE": "",
-                    "DATE": colle.date + " " + colle.heure,
+                    "DATE": colle.date + " " + colle.hour,
                     "DATE_LANG": "fr",
                     "TIMEZONE": "Europe/Paris",
                 }
@@ -336,10 +338,10 @@ def export_colles(
             pdf.set_font("Arial", "", 9)
             pdf.cell(40, th, colle.dateLetters, border=1, align="C")
             pdf.set_font("Arial", "", 11)
-            pdf.cell(20, th, colle.heure, border=1, align="C")
-            pdf.cell(col_width * 0.75, th, colle.prof, border=1, align="C")
-            pdf.cell(30, th, colle.salle, border=1, align="C")
-            pdf.cell(col_width, th, colle.matiere, border=1, align="C")
+            pdf.cell(20, th, colle.hour, border=1, align="C")
+            pdf.cell(col_width * 0.75, th, colle.professor, border=1, align="C")
+            pdf.cell(30, th, colle.classroom, border=1, align="C")
+            pdf.cell(col_width, th, colle.subject, border=1, align="C")
             pdf.ln(th)
 
         pdf.ln(10)
@@ -377,7 +379,7 @@ def get_group_recent_colle_data(groupe: str) -> list[ColleData]:
     currentDate = currentDate.strftime("%d/%m/%Y")
 
     for data in colles:
-        if data.groupe == groupe and compare_dates(data.date, currentDate):
+        if data.group == groupe and compare_dates(data.date, currentDate):
             sortedColles.append(data)
     return sortedColles
 
@@ -390,11 +392,11 @@ def main(user_groupe: str, export_type: Literal["pdf", "csv", "agenda", "todoist
     sorted_colles: list[ColleData] = []
 
     for data in colles:
-        if data.groupe == user_groupe:
+        if data.group == user_groupe:
             sorted_colles.append(data)
 
     try:
-        groupe = sorted_colles[0].groupe
+        groupe = sorted_colles[0].group
     except IndexError:
         return "Aucune colle n'a été trouvé pour ce groupe"
 
