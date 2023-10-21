@@ -128,36 +128,21 @@ def get_holidays(filename: str) -> list[dt.date]:
     return holidays
 
 
-def compare_dates(date1: str, date2: str) -> bool:
-    """### takes in two dates of format dd/mm/yyyy
-    #### True if date1 > date2 else False
-    """
-    ldate1 = list(map(int, date1.split("/")))
-    ldate2 = list(map(int, date2.split("/")))
-    convert1 = dt.datetime(ldate1[2], ldate1[1], ldate1[0])
-    convert2 = dt.datetime(ldate2[2], ldate2[1], ldate2[0])
-    return convert1 > convert2
-
-
-def convert_hour(time: str) -> str:
-    """Convertie l'heure francaises en heures anglaise
+def convert_hour(raw_time: str) -> str:
+    """Change the hour format from "xh" to "x:xx AM/PM"
     Ex: 10h00 -> 10:00 AM
         18h00 -> 6:00 PM
 
     Args:
         heure (string): Ex: 18h00
     """
-
-    temps = time.split("h")
-
-    temps[1] = "00" if temps[1] == "" else temps[1]
-
-    heure = int(temps[0])
-    if heure >= 12:
-        heure = heure - 12
-        return str(heure) + f":{temps[1]} PM"
+    time = raw_time.split("h")
+    minutes = "00" if time[1] == "" else time[1]
+    hours = int(time[0])
+    if hours >= 12:
+        return f"{hours - 12}:{minutes} PM"
     else:
-        return str(heure) + f":{temps[1]} AM"
+        return f"{hours}:{minutes} AM"
 
 
 def add_one_hour(time: str) -> str:
@@ -167,41 +152,41 @@ def add_one_hour(time: str) -> str:
         time (string): Ex: 10:00 AM
     """
 
-    temps = time.split(":")
-    heure = int(temps[0])
-    if heure == 12:
-        return f"1:{temps[1].split(' ')[0]} PM"
+    hour, rest = time.split(":")
+    hour = int(hour)
+    if hour == 12:
+        return f"1:{rest.split(' ')[0]} PM"
     else:
-        return str(heure + 1) + f":{temps[1]}"
+        return f"{hour + 1}:{rest}"
 
 
 def export_colles(
     export_type: Literal["pdf", "csv", "agenda", "todoist"],
-    collesDatas: list[ColleData],
-    groupe: str,
-    vacances: list[str],
+    colles_datas: list[ColleData],
+    group: str,
+    holidays: list[dt.date],
 ):
-    pathExport = f"./exports/groupe{groupe}"
+    export_path = f"./exports/groupe{group}"
 
-    if os.path.exists(pathExport) == False:
-        os.mkdir(pathExport)
+    if os.path.exists(export_path) == False:
+        os.mkdir(export_path)
 
-    def simpleCSV(colles_datas: list[ColleData]):
+    def csv_method():
         # write the sorted data into a csv file
-        with open(os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv"), "w", newline="") as Ofile:
-            writer = csv.writer(Ofile, delimiter=",")
+        with open(os.path.join(export_path, f"ColloscopeGroupe{group}.csv"), "w", newline="") as f:
+            writer = csv.writer(f, delimiter=",")
             writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
-            for colle in colles_datas:  # écris les données de colles dans un fichier
+            for colle in colles_datas:
                 data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
                 writer.writerow(data)
 
-        return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.csv")
+        return os.path.join(export_path, f"ColloscopeGroupe{group}.csv")
 
-    def agenda(colles_datas: list[ColleData]):
-        AgendaColle: list[dict[str, Any]] = []
+    def agenda_method():
+        agenda: list[dict[str, Any]] = []
         for colle in colles_datas:
-            AgendaColle.append(
+            agenda.append(
                 {
                     "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
                     "Start Date": colle.str_date,
@@ -214,7 +199,7 @@ def export_colles(
                 }
             )
 
-        with open(os.path.join(pathExport, f"AgendaGroupe{groupe}.csv"), "w", newline="") as csvfile:
+        with open(os.path.join(export_path, f"AgendaGroupe{group}.csv"), "w", newline="") as f:
             fieldnames = [
                 "Subject",
                 "Start Date",
@@ -225,17 +210,17 @@ def export_colles(
                 "Description",
                 "Location",
             ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
 
             writer.writeheader()
-            for colle in AgendaColle:
+            for colle in agenda:
                 writer.writerow(colle)
 
-    def todoist(colles_datas: list[ColleData]):
+    def todoist_method():
         type, priority = "task", 2
-        todoistColle: list[dict[str, Any]] = []
+        todoist: list[dict[str, Any]] = []
         for colle in colles_datas:
-            todoistColle.append(
+            todoist.append(
                 {
                     "TYPE": type,
                     "CONTENT": f"Colle de {colle.subject} avec {colle.professor}",
@@ -250,7 +235,7 @@ def export_colles(
                 }
             )
 
-        with open(os.path.join(pathExport, f"todoistGroupe{groupe}.csv"), "w", newline="") as csvfile:
+        with open(os.path.join(export_path, f"todoistGroupe{group}.csv"), "w", newline="") as csvfile:
             fieldnames = [
                 "TYPE",
                 "CONTENT",
@@ -266,19 +251,19 @@ def export_colles(
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
             writer.writeheader()
-            for colle in todoistColle:
+            for colle in todoist:
                 writer.writerow(colle)
 
-        return os.path.join(pathExport, f"todoistGroupe{groupe}.csv")
+        return os.path.join(export_path, f"todoistGroupe{group}.csv")
 
-    def pdfExport(colles_datas: list[ColleData], vacances: list[str]):
+    def pdf_method():
         vacanceIndex = 0
         pdf = FPDF()
         pdf.add_page()
         page_width = pdf.w - 2 * pdf.l_margin
 
         pdf.set_font("Arial", "U", 14)
-        pdf.cell(page_width, 0.0, f"Colloscope groupe {groupe}", align="C")
+        pdf.cell(page_width, 0.0, f"Colloscope groupe {group}", align="C")
         pdf.ln(10)
 
         pdf.set_font("Arial", "", 11)
@@ -300,8 +285,8 @@ def export_colles(
         pdf.ln(th)
 
         for i, colle in enumerate(colles_datas, 1):
-            if vacanceIndex < len(vacances):  # fait un saut de ligne à chaque vacances
-                if compare_dates(colle.str_date, vacances[vacanceIndex]):
+            if vacanceIndex < len(holidays):  # fait un saut de ligne à chaque vacances
+                if colle.date > holidays[vacanceIndex]:
                     pdf.ln(th * 0.5)
                     pdf.set_font("Arial", "B", 14)
                     pdf.cell(90 + 2 * col_width, th, f"Vacances", align="C")
@@ -322,22 +307,21 @@ def export_colles(
 
         pdf.set_font("Times", "", 10)
 
-        pdf.output(os.path.join(pathExport, f"ColloscopeGroupe{groupe}.pdf"), "F")
-
-        return os.path.join(pathExport, f"ColloscopeGroupe{groupe}.pdf")
+        pdf.output(os.path.join(export_path, f"ColloscopeGroupe{group}.pdf"), "F")
+        return os.path.join(export_path, f"ColloscopeGroupe{group}.pdf")
 
     match export_type:
         case "csv":
-            return simpleCSV(collesDatas)
+            return csv_method()
 
         case "agenda":
-            return agenda(collesDatas)
+            return agenda_method()
 
         case "pdf":
-            return pdfExport(collesDatas, vacances)
+            return pdf_method()
 
         case "todoist":
-            return todoist(collesDatas)
+            return todoist_method()
 
     Exception("Invalid sort type")
 
