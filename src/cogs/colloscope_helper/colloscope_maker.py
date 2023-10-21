@@ -89,32 +89,23 @@ def sort_colles(
     return sorted(colles_datas, key=key)
 
 
-def get_all_colles(filename: str):
-    # returns a list of all the collesDatas by reading the csv file
-    colles: list[ColleData] = []  # list of collesDatas
+def get_all_colles(filename: str) -> list[ColleData]:
+    """
+    Returns a list of all the collesDatas by reading the csv file
+    """
+    colles: list[ColleData] = []
 
-    with open(filename, encoding="utf-8", errors="ignore") as f:  # open file
-        csv_reader = csv.reader(f, delimiter=",")  # CSV reader
+    with open(filename, encoding="utf-8", errors="ignore") as f:
+        csv_reader = csv.reader(f, delimiter=",")
 
-        header = []  # header
-        data_matrix: list[Any] = []  # array of all the csv data | dataMatrix[y][x] to get the data
-        for i, row in enumerate(csv_reader):  # iterate over each row
-            if i == 0:  # get the first row
-                header = row
-            data_matrix.append(row)
-
-    for y in range(1, len(data_matrix)):  # iterate over each colles rows
-        matiere = data_matrix[y][0]
-        professeur = data_matrix[y][1]
-        jour = data_matrix[y][2]
-        heure = data_matrix[y][3]
-        salle = data_matrix[y][4]
-
-        for x in range(5, len(header)):  # iterate over each colles columns
-            groupe = data_matrix[y][x]
-            semaine = data_matrix[0][x]
-            if groupe != "":
-                colles.append(ColleData(groupe, matiere, professeur, semaine, jour, heure, salle))
+        header = next(csv_reader)  # skip header
+        for row in csv_reader:
+            subject, professor, day, hour, classroom = row[0:5]
+            for x in range(5, len(row)):  # iterate over each colles columns
+                group = row[x]
+                week = header[x]
+                if group != "":
+                    colles.append(ColleData(group, subject, professor, week, day, hour, classroom))
 
     return colles
 
