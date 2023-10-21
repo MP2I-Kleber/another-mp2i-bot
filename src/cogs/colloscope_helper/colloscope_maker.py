@@ -313,33 +313,24 @@ def export_colles(
     match export_type:
         case "csv":
             return csv_method()
-
         case "agenda":
             return agenda_method()
-
         case "pdf":
             return pdf_method()
-
         case "todoist":
             return todoist_method()
 
-    Exception("Invalid sort type")
 
-
-def get_group_recent_colle_data(groupe: str) -> list[ColleData]:
-    if groupe == "":
+def get_group_recent_colle_data(group: str) -> list[ColleData]:
+    if group == "":
         return []
 
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
     colles = sort_colles(colles, sort_type="temps")  # sort by time
-    sortedColles: list[ColleData] = []
-    currentDate = dt.datetime.now() + dt.timedelta(days=-1)  # date de la veille
-    currentDate = currentDate.strftime("%d/%m/%Y")
+    today = dt.datetime.now() + dt.timedelta(days=-1)  # date de la veille
 
-    for data in colles:
-        if data.group == groupe and compare_dates(data.str_date, currentDate):
-            sortedColles.append(data)
-    return sortedColles
+    filtered_colles = [c for c in colles if c.group == group and c.date < today]
+    return filtered_colles
 
 
 def main(user_groupe: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
