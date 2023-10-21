@@ -2,12 +2,13 @@ import csv
 import datetime as dt
 import os
 from dataclasses import InitVar, dataclass
-from typing import Any, Callable, Literal
+from typing import Any, BinaryIO, Callable, Literal, TextIO, overload
 
 from fpdf import FPDF
 
 SCHOLAR_YEAR = 2023  # année de la rentrée
-COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
+# COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
+COLLOSCOPE_PATH = "/Users/pierre/Documents/dev/projects/hosted/maintained/another-mp2i-bot/resources/colloscope.csv"
 
 
 def get_date(week: str, week_day: str) -> dt.date:
@@ -160,7 +161,30 @@ def add_one_hour(time: str) -> str:
         return f"{hour + 1}:{rest}"
 
 
-def export_colles(
+@overload
+def write_colles(
+    file: TextIO,
+    export_type: Literal["csv", "agenda", "todoist"],
+    colles_datas: list[ColleData],
+    group: str,
+    holidays: list[dt.date],
+) -> None:
+    ...
+
+
+@overload
+def write_colles(
+    file: BinaryIO,
+    export_type: Literal["pdf"],
+    colles_datas: list[ColleData],
+    group: str,
+    holidays: list[dt.date],
+) -> None:
+    ...
+
+
+def write_colles(
+    file: TextIO | BinaryIO,
     export_type: Literal["pdf", "csv", "agenda", "todoist"],
     colles_datas: list[ColleData],
     group: str,
@@ -171,19 +195,16 @@ def export_colles(
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
-    def csv_method():
+    def csv_method(f: TextIO):
         # write the sorted data into a csv file
-        with open(os.path.join(export_path, f"ColloscopeGroupe{group}.csv"), "w", newline="") as f:
-            writer = csv.writer(f, delimiter=",")
-            writer.writerow(["date", "heure", "prof", "salle", "matière"])
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
-            for colle in colles_datas:
-                data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
-                writer.writerow(data)
+        for colle in colles_datas:
+            data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
+            writer.writerow(data)
 
-        return os.path.join(export_path, f"ColloscopeGroupe{group}.csv")
-
-    def agenda_method():
+    def agenda_method(f: TextIO):
         agenda: list[dict[str, Any]] = []
         for colle in colles_datas:
             agenda.append(
@@ -199,24 +220,23 @@ def export_colles(
                 }
             )
 
-        with open(os.path.join(export_path, f"AgendaGroupe{group}.csv"), "w", newline="") as f:
-            fieldnames = [
-                "Subject",
-                "Start Date",
-                "Start Time",
-                "End Date",
-                "End Time",
-                "All Day Event",
-                "Description",
-                "Location",
-            ]
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
+        fieldnames = [
+            "Subject",
+            "Start Date",
+            "Start Time",
+            "End Date",
+            "End Time",
+            "All Day Event",
+            "Description",
+            "Location",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
 
-            writer.writeheader()
-            for colle in agenda:
-                writer.writerow(colle)
+        writer.writeheader()
+        for colle in agenda:
+            writer.writerow(colle)
 
-    def todoist_method():
+    def todoist_method(f: TextIO):
         type, priority = "task", 2
         todoist: list[dict[str, Any]] = []
         for colle in colles_datas:
@@ -235,30 +255,29 @@ def export_colles(
                 }
             )
 
-        with open(os.path.join(export_path, f"todoistGroupe{group}.csv"), "w", newline="") as csvfile:
-            fieldnames = [
-                "TYPE",
-                "CONTENT",
-                "DESCRIPTION",
-                "PRIORITY",
-                "INDENT",
-                "AUTHOR",
-                "RESPONSIBLE",
-                "DATE",
-                "DATE_LANG",
-                "TIMEZONE",
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        fieldnames = [
+            "TYPE",
+            "CONTENT",
+            "DESCRIPTION",
+            "PRIORITY",
+            "INDENT",
+            "AUTHOR",
+            "RESPONSIBLE",
+            "DATE",
+            "DATE_LANG",
+            "TIMEZONE",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
 
-            writer.writeheader()
-            for colle in todoist:
-                writer.writerow(colle)
+        writer.writeheader()
+        for colle in todoist:
+            writer.writerow(colle)
 
-        return os.path.join(export_path, f"todoistGroupe{group}.csv")
-
-    def pdf_method():
+    def pdf_method(f: BinaryIO):
         vacanceIndex = 0
         pdf = FPDF()
+        pdf.add_font("Arial", "", "./resources/fonts/arial.ttf")
+        pdf.add_font("Arial", "B", "./resources/fonts/arial_bold.ttf")
         pdf.add_page()
         page_width = pdf.w - 2 * pdf.l_margin
 
@@ -275,7 +294,7 @@ def export_colles(
         th = pdf.font_size + 2
 
         pdf.set_font("Arial", "B", 11)
-        pdf.cell(10, th, txt="Id", border=1, align="C")
+        pdf.cell(10, th, text="Id", border=1, align="C")  # type: ignore
         pdf.cell(40, th, "Date", border=1, align="C")
         pdf.cell(20, th, "Heure", border=1, align="C")
         pdf.cell(col_width * 0.75, th, "Prof", border=1, align="C")
@@ -306,19 +325,21 @@ def export_colles(
         pdf.ln(10)
 
         pdf.set_font("Times", "", 10)
-
-        pdf.output(os.path.join(export_path, f"ColloscopeGroupe{group}.pdf"), "F")
-        return os.path.join(export_path, f"ColloscopeGroupe{group}.pdf")
+        pdf.output(f)  # type: ignore
 
     match export_type:
         case "csv":
-            return csv_method()
+            assert isinstance(file, TextIO)
+            return csv_method(file)
         case "agenda":
-            return agenda_method()
+            assert isinstance(file, TextIO)
+            return agenda_method(file)
         case "pdf":
-            return pdf_method()
+            assert isinstance(file, BinaryIO)
+            return pdf_method(file)
         case "todoist":
-            return todoist_method()
+            assert isinstance(file, TextIO)
+            return todoist_method(file)
 
 
 def get_group_upcoming_colles(group: str) -> list[ColleData]:
@@ -333,13 +354,14 @@ def get_group_upcoming_colles(group: str) -> list[ColleData]:
     return filtered_colles
 
 
-def main(group: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
-    colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
-    holidays = get_holidays(COLLOSCOPE_PATH)
-    colles = sort_colles(colles, sort_type="temps")  # sort by time
+# def main(group: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
+#     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
+#     holidays = get_holidays(COLLOSCOPE_PATH)
+#     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
-    filtered_colles = [c for c in colles if c.group == group]
-    if not filtered_colles:
-        raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
+#     filtered_colles = [c for c in colles if c.group == group]
+#     if not filtered_colles:
+#         raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
 
-    return export_colles(export_type, filtered_colles, group, holidays)
+#     with open("test.pdf", "wb") as f:
+#         write_colles(f, "pdf", filtered_colles, group, holidays)
