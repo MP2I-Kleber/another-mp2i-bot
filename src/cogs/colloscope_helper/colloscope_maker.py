@@ -1,7 +1,7 @@
 import csv
 import datetime as dt
 import os
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from typing import Any, Callable, Literal
 
 from fpdf import FPDF
@@ -10,42 +10,42 @@ SCHOLAR_YEAR = 2023  # année de la rentrée
 COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
 
 
+def get_date(week: str, week_day: str) -> dt.date:
+    week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
+
+    # dates are formatted like this: "dd/mm-dd/mm"
+    # we only care about the first day of the week
+    day, month = map(int, week.split("-")[0].split("/"))
+
+    if int(month) > 8:
+        year = SCHOLAR_YEAR
+    else:
+        year = SCHOLAR_YEAR + 1
+
+    date = dt.date(year, month, day)
+    delta = dt.timedelta(days=week_days.index(week_day))
+
+    return date + delta
+
+
 @dataclass
 class ColleData:
     group: str
     subject: str
     professor: str
-    week: str
+    week: InitVar[str]  # format: "dd/mm-dd/mm"
     week_day: str
     hour: str
     classroom: str
 
-    def __post_init__(self):
+    def __post_init__(self, week: str):
         self.week_day = self.week_day.lower()
-
-        self.date: dt.date = self.get_date()
+        self.date: dt.date = get_date(week, self.week_day)
 
     def __str__(self):
         return (
             f"Le {self.str_date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.hour}"
         )
-
-    def get_date(self) -> dt.date:
-        week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
-
-        # dates are formatted like this: "dd/mm-dd/mm"
-        # we only care about the first day of the week
-        day, month = map(int, self.week.split("-")[0].split("/"))
-
-        if int(month) > 8:
-            year = SCHOLAR_YEAR
-        else:
-            year = SCHOLAR_YEAR + 1
-
-        date = dt.date(year, month, day)
-        delta = dt.timedelta(days=week_days.index(self.week_day))
-
-        return date + delta
 
     @property
     def str_date(self) -> str:
@@ -98,7 +98,7 @@ def get_all_colles(filename: str) -> list[ColleData]:
     with open(filename, encoding="utf-8", errors="ignore") as f:
         csv_reader = csv.reader(f, delimiter=",")
 
-        header = next(csv_reader)  # skip header
+        header = next(csv_reader)
         for row in csv_reader:
             subject, professor, day, hour, classroom = row[0:5]
             for x in range(5, len(row)):  # iterate over each colles columns
@@ -110,22 +110,22 @@ def get_all_colles(filename: str) -> list[ColleData]:
     return colles
 
 
-def get_vacances(filename: str) -> list[str]:
-    """#### renvoie les dates de chaques vacances"""
-    with open(filename, encoding="utf-8", errors="ignore") as Cfile:  # open file
-        csv_reader = csv.reader(Cfile, delimiter=",")  # CSV reader
+def get_holidays(filename: str) -> list[dt.date]:
+    """Return the holydays dates"""
+    with open(filename, encoding="utf-8", errors="ignore") as f:
+        csv_reader = csv.reader(f, delimiter=",")
 
-        vacances: list[str] = []  #
-        for RowIndex, row in enumerate(csv_reader):  # iterate over each row
-            if RowIndex == 0:  # get the first row
-                for i, week in enumerate(row):  # iterate over each column
-                    if week.lower() == "vacances":
-                        if not row[i - 1]:
-                            continue  # skip empty rows
-                        # semaine = ColleData("", "", "", row[i - 1], "lundi", "", "").get_date()  # format date
-                        # vacances.append(add_one_week(semaine))  # add vacances to list
+        holidays: list[dt.date] = []
+        header = next(csv_reader)
 
-    return vacances
+    for i, week in enumerate(header):
+        if week.lower() == "vacances":
+            if not header[i - 1]:
+                continue
+            week = get_date(header[i - 1], "lundi")
+            holidays.append(week + dt.timedelta(days=7))  # add vacances to list
+
+    return holidays
 
 
 def compare_dates(date1: str, date2: str) -> bool:
@@ -137,17 +137,6 @@ def compare_dates(date1: str, date2: str) -> bool:
     convert1 = dt.datetime(ldate1[2], ldate1[1], ldate1[0])
     convert2 = dt.datetime(ldate2[2], ldate2[1], ldate2[0])
     return convert1 > convert2
-
-
-def add_one_week(time: str) -> str:
-    """### Add one week
-    #### Args :
-        time : string dd/mm/yyyy
-    """
-    date1 = list(map(int, time.split("/")))
-    convert1 = dt.datetime(date1[2], date1[1], date1[0])
-    convert1 = convert1 + dt.timedelta(days=7)
-    return convert1.strftime("%d/%m/%Y")
 
 
 def convert_hour(time: str) -> str:
@@ -371,7 +360,7 @@ def get_group_recent_colle_data(groupe: str) -> list[ColleData]:
 
 def main(user_groupe: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
-    vacances = get_vacances(COLLOSCOPE_PATH)
+    vacances = get_holidays(COLLOSCOPE_PATH)
     colles = sort_colles(colles, sort_type="temps")  # sort by time
 
     sorted_colles: list[ColleData] = []
