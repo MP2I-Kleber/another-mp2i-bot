@@ -268,7 +268,7 @@ class TellHappyBirthday(ui.View):
 
     def __init__(self, user_id: int) -> None:
         self.user_id = user_id
-        super().__init__(timeout=None)
+        super().__init__(timeout=17 * 60)
 
     @ui.button(label="Happy Birthday !", emoji="🎉")
     async def tell_happy_birthday(self, inter: Interaction, button: ui.Button[Self]) -> None:
