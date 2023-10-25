@@ -2,7 +2,7 @@ import csv
 import datetime as dt
 import os
 from dataclasses import InitVar, dataclass
-from typing import Any, BinaryIO, Callable, Literal, TextIO, overload
+from typing import IO, Any, Callable, Literal, cast, overload
 
 from fpdf import FPDF
 
@@ -163,7 +163,7 @@ def add_one_hour(time: str) -> str:
 
 @overload
 def write_colles(
-    file: TextIO,
+    file: IO[str],
     export_type: Literal["csv", "agenda", "todoist"],
     colles_datas: list[ColleData],
     group: str,
@@ -174,7 +174,7 @@ def write_colles(
 
 @overload
 def write_colles(
-    file: BinaryIO,
+    file: IO[bytes],
     export_type: Literal["pdf"],
     colles_datas: list[ColleData],
     group: str,
@@ -184,7 +184,7 @@ def write_colles(
 
 
 def write_colles(
-    file: TextIO | BinaryIO,
+    file: IO[str] | IO[bytes],
     export_type: Literal["pdf", "csv", "agenda", "todoist"],
     colles_datas: list[ColleData],
     group: str,
@@ -195,7 +195,7 @@ def write_colles(
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
-    def csv_method(f: TextIO):
+    def csv_method(f: IO[str]):
         # write the sorted data into a csv file
         writer = csv.writer(f, delimiter=",")
         writer.writerow(["date", "heure", "prof", "salle", "matière"])
@@ -204,7 +204,7 @@ def write_colles(
             data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
             writer.writerow(data)
 
-    def agenda_method(f: TextIO):
+    def agenda_method(f: IO[str]):
         agenda: list[dict[str, Any]] = []
         for colle in colles_datas:
             agenda.append(
@@ -236,7 +236,7 @@ def write_colles(
         for colle in agenda:
             writer.writerow(colle)
 
-    def todoist_method(f: TextIO):
+    def todoist_method(f: IO[str]):
         type, priority = "task", 2
         todoist: list[dict[str, Any]] = []
         for colle in colles_datas:
@@ -273,7 +273,7 @@ def write_colles(
         for colle in todoist:
             writer.writerow(colle)
 
-    def pdf_method(f: BinaryIO):
+    def pdf_method(f: IO[bytes]):
         vacanceIndex = 0
         pdf = FPDF()
         pdf.add_font("Arial", "", "./resources/fonts/arial.ttf")
@@ -329,16 +329,16 @@ def write_colles(
 
     match export_type:
         case "csv":
-            assert isinstance(file, TextIO)
+            file = cast(IO[str], file)
             return csv_method(file)
         case "agenda":
-            assert isinstance(file, TextIO)
+            file = cast(IO[str], file)
             return agenda_method(file)
         case "pdf":
-            assert isinstance(file, BinaryIO)
+            file = cast(IO[bytes], file)
             return pdf_method(file)
         case "todoist":
-            assert isinstance(file, TextIO)
+            file = cast(IO[str], file)
             return todoist_method(file)
 
 
