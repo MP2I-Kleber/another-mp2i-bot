@@ -342,11 +342,7 @@ def write_colles(
             return todoist_method(file)
 
 
-def get_group_upcoming_colles(group: str) -> list[ColleData]:
-    if group == "":
-        return []
-
-    colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
+def get_group_upcoming_colles(colles: list[ColleData], group: str) -> list[ColleData]:
     colles = sort_colles(colles, sort_type="temps")  # sort by time
     today = dt.datetime.now() + dt.timedelta(days=-1)  # date de la veille
 

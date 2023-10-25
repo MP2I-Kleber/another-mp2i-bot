@@ -5,5 +5,5 @@ typing_extensions
 tzdata
 Pillow
 openai
-fpdf
+fpdf2
 pdf2image
