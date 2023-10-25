@@ -43,6 +43,7 @@ class PlanningHelper(
         for i, img in enumerate(images):
             img_buffer = io.BytesIO()
             img.save(img_buffer, format="png")
+            img_buffer.seek(0)
             files.append(discord.File(img_buffer, f"{i}.png"))
 
         await inter.response.send_message(files=files)
