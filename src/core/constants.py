@@ -13,7 +13,7 @@ COLLOSCOPE_PATH = Path("./resources/colloscope.csv")
 
 # "admin" extension can be added in debug.
 # also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS = ["weather_icon", "cts", "restauration", "fun", "mp2i", "openia_chatbot"]
+LOADED_EXTENSIONS = ["weather_icon", "cts", "restauration", "fun", "mp2i", "openia_chatbot", "colloscope_helper"]
 
 
 # This is a secret prompt, dont look at it. (Who is M. C??)

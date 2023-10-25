@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -37,10 +39,12 @@ class PlanningHelper(
         buffer.seek(0)
         images = convert_from_bytes(buffer.read())
 
-        files = [
-            discord.File(img.tobytes("png"), f"{i}.png")  # pyright: ignore [reportUnknownMemberType]
-            for i, img in enumerate(images)
-        ]
+        files: list[discord.File] = []
+        for i, img in enumerate(images):
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format="png")
+            files.append(discord.File(img_buffer, f"{i}.png"))
+
         await inter.response.send_message(files=files)
 
     @app_commands.command(name="export", description="Exporte le colloscope dans un fichier")
