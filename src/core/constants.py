@@ -5,13 +5,15 @@ You can also add some constants here, if you think it is necessary.
 
 Some constants may be used in one single place, but by putting them here, it is easier to change them.
 """
+from pathlib import Path
 
 GUILD_ID: int = 1015136740127821885
 MAIN_CHANNEL_ID: int = 1015172827650998352
+COLLOSCOPE_PATH = Path("./resources/colloscope.csv")
 
 # "admin" extension can be added in debug.
 # also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS = ["weather_icon", "cts", "restauration", "fun", "mp2i", "openia_chatbot"]
+LOADED_EXTENSIONS = ["weather_icon", "cts", "restauration", "fun", "mp2i", "openia_chatbot", "colloscope_helper"]
 
 
 # This is a secret prompt, dont look at it. (Who is M. C??)
