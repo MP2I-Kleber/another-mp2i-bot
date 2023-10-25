@@ -344,7 +344,7 @@ def write_colles(
 
 def get_group_upcoming_colles(colles: list[ColleData], group: str) -> list[ColleData]:
     colles = sort_colles(colles, sort_type="temps")  # sort by time
-    today = dt.datetime.now() + dt.timedelta(days=-1)  # date de la veille
+    today = dt.date.today() + dt.timedelta(days=-1)  # date de la veille
 
     filtered_colles = [c for c in colles if c.group == group and c.date < today]
     return filtered_colles
