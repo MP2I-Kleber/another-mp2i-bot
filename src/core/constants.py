@@ -7,9 +7,10 @@ Some constants may be used in one single place, but by putting them here, it is 
 """
 from pathlib import Path
 
-GUILD_ID: int = 1015136740127821885
-MAIN_CHANNEL_ID: int = 1015172827650998352
-COLLOSCOPE_PATH = Path("./resources/colloscope.csv")
+GUILD_ID: int = 1157390780168671462
+MAIN_CHANNEL_ID: int = 1157390780705546375
+COLLOSCOPE_MPI_PATH = Path("./resources/colloscope_mpi.csv")
+COLLOSCOPE_MP2I_PATH = Path("./resources/colloscope_mp2i.csv")
 
 # "admin" extension can be added in debug.
 # also in debug, it is recommended to remove all extensions except the needed ones.
