@@ -8,7 +8,7 @@ from fpdf import FPDF
 
 SCHOLAR_YEAR = 2023  # année de la rentrée
 # COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
-COLLOSCOPE_PATH = "/Users/pierre/Documents/dev/projects/hosted/maintained/another-mp2i-bot/resources/colloscope.csv"
+COLLOSCOPE_PATH = "./resources/colloscope.csv"
 
 
 def get_date(week: str, week_day: str) -> dt.date:
