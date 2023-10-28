@@ -30,10 +30,12 @@ class PlanningHelper(
 
         self.colloscopes: dict[str, cm.Colloscope] = {}
 
-        for csv_file in glob("./resources/personal_informations/*.csv"):
+        for csv_file in glob("./resources/colloscopes/*.csv"):
             class_ = os.path.splitext(os.path.basename(csv_file))[0]
+            if class_ == "example":
+                continue
             try:
-                self.colloscopes[class_] = cm.load_colloscope(csv_file)
+                self.colloscopes[class_.lower()] = cm.load_colloscope(csv_file)
             except Exception:
                 logger.warning(
                     __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=True
@@ -119,10 +121,10 @@ class PlanningHelper(
     @export.autocomplete("group")
     @quicklook.autocomplete("group")
     async def group_autocompleter(self, inter: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
-        if inter.namespace.class_ is None:
-            return [app_commands.Choice(name="Selectionnez une classe avant un groupe", value="-1")]
+        if inter.namespace.classe is None:
+            return [app_commands.Choice(name="Sélectionnez une classe avant un groupe", value="-1")]
 
-        return [app_commands.Choice(name=g, value=g) for g in self.colloscopes[inter.namespace.class_].groups]
+        return [app_commands.Choice(name=g, value=g) for g in self.colloscopes[inter.namespace.classe].groups]
 
 
 async def setup(bot: MP2IBot):
