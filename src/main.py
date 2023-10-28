@@ -5,6 +5,14 @@ from os import environ
 from bot import MP2IBot
 from core.logger import create_logger
 
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    pass
+else:
+    load_dotenv()
+
+
 logger = create_logger(level=getattr(logging, environ.get("LOG_LEVEL", "INFO")))
 logging.getLogger("discord").setLevel(logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
