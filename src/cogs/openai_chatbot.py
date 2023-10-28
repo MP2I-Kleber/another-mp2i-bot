@@ -56,9 +56,9 @@ class ChatBot(Cog):
 
     async def cog_load(self) -> None:
         try:
-            openai.api_key = os.environ["OPENIA_API_KEY"]
+            openai.api_key = os.environ["OPENAI_API_KEY"]
         except KeyError:
-            raise Exception("OPENIA_API_KEY is not set in the environment variables. The extension cannot be loaded.")
+            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")
 
     async def send_chat_completion(
         self,
