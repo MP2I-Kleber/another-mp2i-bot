@@ -75,7 +75,11 @@ class PlanningHelper(
         class_="Votre classe", group="Votre groupe de colle", format="Le format du fichier à exporter"
     )
     async def export(
-        self, inter: discord.Interaction, class_: str, group: int, format: Literal["pdf", "csv", "agenda"] = "pdf"
+        self,
+        inter: discord.Interaction,
+        class_: str,
+        group: int,
+        format: Literal["pdf", "csv", "agenda", "todoist"] = "pdf",
     ):
         colloscope = self.colloscopes[class_]
 
@@ -84,8 +88,8 @@ class PlanningHelper(
         if not filtered_colles:
             raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
 
-        if format in ["agenda", "csv"]:
-            format = cast(Literal["agenda", "csv"], format)
+        if format in ["agenda", "csv", "todoist"]:
+            format = cast(Literal["agenda", "csv", "todoist"], format)
             buffer = io.StringIO()
             cm.write_colles(buffer, format, filtered_colles, str(group), colloscope.holidays)
             buffer = io.BytesIO(buffer.getvalue().encode())
