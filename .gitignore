@@ -1,5 +1,7 @@
 resources/personal_informations/*
 !resources/personal_informations/example.csv
+resources/colloscopes/*
+!resources/colloscopes/example.csv
 data/
 resources/colloscope.csv
 
