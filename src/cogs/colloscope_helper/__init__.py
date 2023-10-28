@@ -98,6 +98,7 @@ class PlanningHelper(
             buffer = io.StringIO()
             cm.write_colles(buffer, format, filtered_colles, str(group), colloscope.holidays)
             buffer = io.BytesIO(buffer.getvalue().encode())
+            format = "csv"
         else:
             format = cast(Literal["pdf"], format)
             buffer = io.BytesIO()
