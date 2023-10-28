@@ -52,7 +52,7 @@ class PlanningHelper(
     @app_commands.command(name="aperçu", description="Affiche l'aperçu du colloscope")
     @app_commands.rename(class_="classe", group="groupe")
     @app_commands.describe(class_="Votre classe.", group="Votre groupe de colle.")
-    async def quicklook(self, inter: discord.Interaction, class_: str, group: int):
+    async def quicklook(self, inter: discord.Interaction, class_: str, group: str):
         colloscope = self.colloscopes[class_]
         colles = cm.sort_colles(colloscope.colles, sort_type="temps")  # sort by time
 
@@ -83,7 +83,7 @@ class PlanningHelper(
         self,
         inter: discord.Interaction,
         class_: str,
-        group: int,
+        group: str,
         format: Literal["pdf", "csv", "agenda", "todoist"] = "pdf",
     ):
         colloscope = self.colloscopes[class_]
@@ -109,7 +109,7 @@ class PlanningHelper(
     @app_commands.command(name="prochaine_colle", description="Affiche la prochaine colle")
     @app_commands.rename(class_="classe", group="groupe", nb="nombre")
     @app_commands.describe(class_="Votre classe.", group="Votre groupe de colle.", nb="Le nombre de colle à afficher.")
-    async def next_colle(self, inter: discord.Interaction, class_: str, group: int, nb: int = 5):
+    async def next_colle(self, inter: discord.Interaction, class_: str, group: str, nb: int = 5):
         colloscope = self.colloscopes[class_]
 
         sorted_colles = cm.get_group_upcoming_colles(colloscope.colles, str(group))
