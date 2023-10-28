@@ -115,6 +115,15 @@ class PlanningHelper(
             output_text += f"**{date.title()} : {sorted_colles[i].hour}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
         await inter.response.send_message(output_text)
 
+    @next_colle.autocomplete("group")
+    @export.autocomplete("group")
+    @quicklook.autocomplete("group")
+    async def group_autocompleter(self, inter: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        if inter.namespace.class_ is None:
+            return [app_commands.Choice(name="Selectionnez une classe avant un groupe", value="-1")]
+
+        return [app_commands.Choice(name=g, value=g) for g in self.colloscopes[inter.namespace.class_].groups]
+
 
 async def setup(bot: MP2IBot):
     await bot.add_cog(PlanningHelper(bot))

@@ -16,6 +16,11 @@ class Colloscope:
     colles: list[ColleData]
     holidays: list[dt.date]
 
+    @property
+    def groups(self) -> list[str]:
+        """Get a unique list of available groups"""
+        return list(set(c.group for c in self.colles))
+
 
 @dataclass
 class ColleData:
