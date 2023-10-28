@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import io
+import logging
+import os
+from glob import glob
 from typing import TYPE_CHECKING, Literal, cast
 
 import discord
@@ -8,7 +11,7 @@ from discord import app_commands
 from discord.ext import commands
 from pdf2image.pdf2image import convert_from_bytes
 
-from core.constants import COLLOSCOPE_PATH
+from core.utils import BraceMessage as __
 
 from . import colloscope_maker as cm
 
@@ -16,26 +19,44 @@ if TYPE_CHECKING:
     from bot import MP2IBot
 
 
+logger = logging.getLogger(__name__)
+
+
 class PlanningHelper(
     commands.GroupCog, group_name="colloscope", group_description="Un utilitaire pour gérer le colloscope"
 ):
     def __init__(self, bot: MP2IBot):
         self.bot = bot
-        self.colles = cm.get_all_colles(str(COLLOSCOPE_PATH))
-        self.holidays = cm.get_holidays(str(COLLOSCOPE_PATH))
+
+        self.colloscopes: dict[str, cm.Colloscope] = {}
+
+        for csv_file in glob("./resources/personal_informations/*.csv"):
+            class_ = os.path.splitext(os.path.basename(csv_file))[0]
+            try:
+                self.colloscopes[class_] = cm.load_colloscope(csv_file)
+            except Exception:
+                logger.warning(
+                    __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=True
+                )
+
+        decorator = app_commands.choices(class_=[app_commands.Choice(name=k, value=k) for k in self.colloscopes])
+        decorator(self.quicklook)
+        decorator(self.export)
+        decorator(self.next_colle)
 
     @app_commands.command(name="aperçu", description="Affiche l'aperçu du colloscope")
-    @app_commands.rename(group="groupe")
-    @app_commands.describe(group="Votre groupe de colle")
-    async def quicklook(self, inter: discord.Interaction, group: int):
-        colles = cm.sort_colles(self.colles, sort_type="temps")  # sort by time
+    @app_commands.rename(class_="classe", group="groupe")
+    @app_commands.describe(class_="Votre classe.", group="Votre groupe de colle.")
+    async def quicklook(self, inter: discord.Interaction, class_: str, group: int):
+        colloscope = self.colloscopes[class_]
+        colles = cm.sort_colles(colloscope.colles, sort_type="temps")  # sort by time
 
         filtered_colles = [c for c in colles if c.group == str(group)]
         if not filtered_colles:
             raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
 
         buffer = io.BytesIO()
-        cm.write_colles(buffer, "pdf", filtered_colles, str(group), self.holidays)
+        cm.write_colles(buffer, "pdf", filtered_colles, str(group), colloscope.holidays)
         buffer.seek(0)
         images = convert_from_bytes(buffer.read())
 
@@ -49,10 +70,16 @@ class PlanningHelper(
         await inter.response.send_message(files=files)
 
     @app_commands.command(name="export", description="Exporte le colloscope dans un fichier")
-    @app_commands.rename(group="groupe")
-    @app_commands.describe(group="Votre groupe de colle", format="Le format du fichier à exporter")
-    async def export(self, inter: discord.Interaction, group: int, format: Literal["pdf", "csv", "agenda"] = "pdf"):
-        colles = cm.sort_colles(self.colles, sort_type="temps")  # sort by time
+    @app_commands.rename(class_="classe", group="groupe")
+    @app_commands.describe(
+        class_="Votre classe", group="Votre groupe de colle", format="Le format du fichier à exporter"
+    )
+    async def export(
+        self, inter: discord.Interaction, class_: str, group: int, format: Literal["pdf", "csv", "agenda"] = "pdf"
+    ):
+        colloscope = self.colloscopes[class_]
+
+        colles = cm.sort_colles(colloscope.colles, sort_type="temps")  # sort by time
         filtered_colles = [c for c in colles if c.group == str(group)]
         if not filtered_colles:
             raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
@@ -60,21 +87,23 @@ class PlanningHelper(
         if format in ["agenda", "csv"]:
             format = cast(Literal["agenda", "csv"], format)
             buffer = io.StringIO()
-            cm.write_colles(buffer, format, filtered_colles, str(group), self.holidays)
+            cm.write_colles(buffer, format, filtered_colles, str(group), colloscope.holidays)
             buffer = io.BytesIO(buffer.getvalue().encode())
         else:
             format = cast(Literal["pdf"], format)
             buffer = io.BytesIO()
-            cm.write_colles(buffer, format, filtered_colles, str(group), self.holidays)
+            cm.write_colles(buffer, format, filtered_colles, str(group), colloscope.holidays)
         buffer.seek(0)
         file = discord.File(buffer, filename=f"colloscope.{format}")
         await inter.response.send_message(file=file)
 
     @app_commands.command(name="prochaine_colle", description="Affiche la prochaine colle")
-    @app_commands.rename(group="groupe", nb="nombre")
-    @app_commands.describe(group="Votre groupe de colle", nb="Le nombre de colle à afficher")
-    async def next_colle(self, inter: discord.Interaction, group: int, nb: int = 5):
-        sorted_colles = cm.get_group_upcoming_colles(self.colles, str(group))
+    @app_commands.rename(class_="classe", group="groupe", nb="nombre")
+    @app_commands.describe(class_="Votre classe.", group="Votre groupe de colle.", nb="Le nombre de colle à afficher.")
+    async def next_colle(self, inter: discord.Interaction, class_: str, group: int, nb: int = 5):
+        colloscope = self.colloscopes[class_]
+
+        sorted_colles = cm.get_group_upcoming_colles(colloscope.colles, str(group))
         output_text = f"### __Liste des {min(nb, len(sorted_colles), 12 )} prochaines Colles du groupe {group} :__\n"
 
         for i in range(min(nb, len(sorted_colles), 12)):

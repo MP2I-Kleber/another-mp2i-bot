@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import datetime as dt
 import os
@@ -6,27 +8,13 @@ from typing import IO, Any, Callable, Literal, cast, overload
 
 from fpdf import FPDF
 
-SCHOLAR_YEAR = 2023  # année de la rentrée
-# COLLOSCOPE_PATH = "./data/colloscope.csv"  # path to the colloscope csv file
-COLLOSCOPE_PATH = "/Users/pierre/Documents/dev/projects/hosted/maintained/another-mp2i-bot/resources/colloscope.csv"
+from core.constants import SCHOLAR_YEAR
 
 
-def get_date(week: str, week_day: str) -> dt.date:
-    week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
-
-    # dates are formatted like this: "dd/mm-dd/mm"
-    # we only care about the first day of the week
-    day, month = map(int, week.split("-")[0].split("/"))
-
-    if int(month) > 8:
-        year = SCHOLAR_YEAR
-    else:
-        year = SCHOLAR_YEAR + 1
-
-    date = dt.date(year, month, day)
-    delta = dt.timedelta(days=week_days.index(week_day))
-
-    return date + delta
+@dataclass
+class Colloscope:
+    colles: list[ColleData]
+    holidays: list[dt.date]
 
 
 @dataclass
@@ -76,6 +64,24 @@ class ColleData:
         return f"{self.week_day} {self.date.day} {monthName[self.date.month - 1]}"
 
 
+def get_date(week: str, week_day: str) -> dt.date:
+    week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
+
+    # dates are formatted like this: "dd/mm-dd/mm"
+    # we only care about the first day of the week
+    day, month = map(int, week.split("-")[0].split("/"))
+
+    if int(month) > 8:
+        year = SCHOLAR_YEAR
+    else:
+        year = SCHOLAR_YEAR + 1
+
+    date = dt.date(year, month, day)
+    delta = dt.timedelta(days=week_days.index(week_day))
+
+    return date + delta
+
+
 def sort_colles(
     colles_datas: list[ColleData], sort_type: Literal["temps", "prof", "groupe"] = "temps"
 ) -> list[ColleData]:
@@ -90,7 +96,7 @@ def sort_colles(
     return sorted(colles_datas, key=key)
 
 
-def get_all_colles(filename: str) -> list[ColleData]:
+def load_colloscope(filename: str) -> Colloscope:
     """
     Returns a list of all the collesDatas by reading the csv file
     """
@@ -99,7 +105,9 @@ def get_all_colles(filename: str) -> list[ColleData]:
     with open(filename, encoding="utf-8", errors="ignore") as f:
         csv_reader = csv.reader(f, delimiter=",")
 
+        holidays: list[dt.date] = []
         header = next(csv_reader)
+
         for row in csv_reader:
             subject, professor, day, hour, classroom = row[0:5]
             for x in range(5, len(row)):  # iterate over each colles columns
@@ -108,17 +116,6 @@ def get_all_colles(filename: str) -> list[ColleData]:
                 if group != "":
                     colles.append(ColleData(group, subject, professor, week, day, hour, classroom))
 
-    return colles
-
-
-def get_holidays(filename: str) -> list[dt.date]:
-    """Return the holydays dates"""
-    with open(filename, encoding="utf-8", errors="ignore") as f:
-        csv_reader = csv.reader(f, delimiter=",")
-
-        holidays: list[dt.date] = []
-        header = next(csv_reader)
-
     for i, week in enumerate(header):
         if week.lower() == "vacances":
             if not header[i - 1]:
@@ -126,7 +123,7 @@ def get_holidays(filename: str) -> list[dt.date]:
             week = get_date(header[i - 1], "lundi")
             holidays.append(week + dt.timedelta(days=7))  # add vacances to list
 
-    return holidays
+    return Colloscope(colles, holidays)
 
 
 def convert_hour(raw_time: str) -> str:
