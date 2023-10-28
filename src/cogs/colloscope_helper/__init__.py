@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import logging
 import os
+from functools import partial
 from glob import glob
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -41,10 +42,12 @@ class PlanningHelper(
                     __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=True
                 )
 
-        decorator = app_commands.choices(class_=[app_commands.Choice(name=k, value=k) for k in self.colloscopes])
-        decorator(self.quicklook)
-        decorator(self.export)
-        decorator(self.next_colle)
+        decorator = partial(
+            app_commands.choices, class_=[app_commands.Choice(name=k, value=k) for k in self.colloscopes]
+        )
+        decorator()(self.quicklook)
+        decorator()(self.export)
+        decorator()(self.next_colle)
 
     @app_commands.command(name="aperçu", description="Affiche l'aperçu du colloscope")
     @app_commands.rename(class_="classe", group="groupe")
