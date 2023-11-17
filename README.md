@@ -1,3 +1,5 @@
+![](https://bannermd.airopi.dev/banner?title=MP2IBot&desc=Yet%20another%20MP2I%20bot&repo=MP2I-Kleber/another-mp2i-bot)
+
 # another-mp2i-bot
 
 ![Static Badge](https://img.shields.io/badge/python-grey?style=for-the-badge&logo=python) ![Static Badge](https://img.shields.io/badge/discord.py-grey?style=for-the-badge&logo=python) ![Static Badge](https://img.shields.io/badge/docker-grey?style=for-the-badge&logo=docker)
