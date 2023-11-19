@@ -241,14 +241,14 @@ class Fun(Cog):
                 self.kevin_webhook = wh[0]
 
         messages = [
-            "Allez dormir les sups!",
-            "Le sommeil, c'est pas a négliger ! Au lit !",
-            "Bonne nuit, faut aller dormir",
-            "Il est l'heure d'aller se coucher!",
-            "Faites de beau rêves, c'est l'heure !",
+            "Allez dormir, les sups !",
+            "Le sommeil, c'est pas à négliger ! Au lit !",
+            "Bonne nuit, faut aller dormir !",
+            "Il est l'heure d'aller se coucher !",
+            "Faites de beaux rêves, c'est l'heure de dormir !",
             "Allez, au lit !",
             "Bonne nuit les gens !",
-            "Pensez a aller vous coucher !",
+            "Pensez à aller vous coucher !",
         ]
 
         await self.kevin_webhook.send(
