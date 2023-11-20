@@ -1,4 +1,4 @@
-FROM python:3.10.5 as base
+FROM python:3.12 as base
 RUN apt-get update && apt-get install -y poppler-utils
 WORKDIR /app
 ENV PYTHONUNBUFFERED=0

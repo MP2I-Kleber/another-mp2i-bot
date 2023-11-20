@@ -2,6 +2,7 @@ version: '3'
 
 services:
   mybot:
+    image: airopi/mp2i-bot:latest
     build:
       context: .
       dockerfile: ./Dockerfile

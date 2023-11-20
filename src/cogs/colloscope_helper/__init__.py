@@ -37,9 +37,9 @@ class PlanningHelper(
                 continue
             try:
                 self.colloscopes[class_.lower()] = cm.Colloscope.from_filename(csv_file)
-            except Exception:
+            except Exception as e:
                 logger.warning(
-                    __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=True
+                    __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=e
                 )
 
         decorator = partial(
