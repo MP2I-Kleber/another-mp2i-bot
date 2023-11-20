@@ -130,7 +130,7 @@ class PlanningHelper(
 
         return [
             app_commands.Choice(name=g, value=g)
-            for g in self.colloscopes[inter.namespace.classe].groups
+            for g in sorted(self.colloscopes[inter.namespace.classe].groups)
             if g.startswith(current)
         ]
 
