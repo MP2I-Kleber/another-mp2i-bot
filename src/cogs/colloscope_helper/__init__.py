@@ -118,7 +118,7 @@ class PlanningHelper(
 
         for i in range(min(nb, len(sorted_colles), 12)):
             date = sorted_colles[i].long_str_date
-            output_text += f"**{date.title()} : {sorted_colles[i].time}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
+            output_text += f"**{date.title()} : {sorted_colles[i].str_time}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
         await inter.response.send_message(output_text)
 
     @next_colle.autocomplete("group")
