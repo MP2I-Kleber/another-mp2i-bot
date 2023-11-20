@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  mybot:
+  mp2i-bot:
     image: airopi/mp2i-bot:latest
     build:
       context: .
