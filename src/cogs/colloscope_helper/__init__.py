@@ -128,7 +128,11 @@ class PlanningHelper(
         if inter.namespace.classe is None:
             return [app_commands.Choice(name="Sélectionnez une classe avant un groupe", value="-1")]
 
-        return [app_commands.Choice(name=g, value=g) for g in self.colloscopes[inter.namespace.classe].groups]
+        return [
+            app_commands.Choice(name=g, value=g)
+            for g in self.colloscopes[inter.namespace.classe].groups
+            if g.startswith(current)
+        ]
 
 
 async def setup(bot: MP2IBot):

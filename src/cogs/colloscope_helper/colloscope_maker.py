@@ -58,17 +58,17 @@ class Colloscope:
                 for x in range(5, len(row)):
                     # [5],group,group,group,...
                     group = row[x]
-                    week = dt.datetime.strptime(header[x], "%d/%m/%y")
-                    date: dt.date = day_offset(week, week_day)
-
                     if group != "":
+                        # we parse the date here, to avoid the "Vacances" case.
+                        week = dt.datetime.strptime(header[x], "%d/%m/%y").date()
+                        date: dt.date = day_offset(week, week_day)
                         colles.append(ColleData(group, subject, professor, date, week_day, hour, classroom))
 
         for i, week in enumerate(header):
             if week.lower() == "vacances":
                 if not header[i - 1]:
                     continue
-                week = dt.datetime.strptime(header[i - 1], "%d/%m/%y")
+                week = dt.datetime.strptime(header[i - 1], "%d/%m/%y").date()
                 holidays.append(week + dt.timedelta(days=7))
 
         return cls(colles, holidays)
@@ -96,7 +96,7 @@ class ColleData:
 
     @property
     def str_time(self) -> str:
-        return self.time.strftime("%hh%m")
+        return self.time.strftime("%Hh%M")
 
     @property
     def long_str_date(self) -> str:
@@ -125,7 +125,7 @@ class ColleData:
 def day_offset(week: dt.date, week_day: str) -> dt.date:
     week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 
-    delta = dt.timedelta(days=week_days.index(week_day))
+    delta = dt.timedelta(days=week_days.index(week_day.lower()))
     return week + delta
 
 

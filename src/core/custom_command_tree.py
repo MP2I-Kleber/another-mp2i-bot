@@ -47,7 +47,6 @@ class CustomCommandTree(CommandTree["MP2IBot"]):
                 return
             case BaseError():
                 return await self.send_error(interaction, str(error))
-            case _:
+            case e:
                 await self.send_error(interaction, f"Une erreur random est survenue j'ai pas capté sorry.\n{error}")
-
-        logger.error(f"An unhandled error happened : {error} ({type(error)})")
+                logger.error(f"An unhandled error happened : {error} ({type(error)})", exc_info=e)
