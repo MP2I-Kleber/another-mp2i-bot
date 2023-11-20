@@ -3,12 +3,10 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import os
-from dataclasses import InitVar, dataclass
-from typing import IO, Any, Callable, Literal, cast, overload
+from dataclasses import dataclass
+from typing import IO, Any, Callable, Literal, Self, cast, overload
 
 from fpdf import FPDF
-
-from core.constants import SCHOLAR_YEAR
 
 
 @dataclass
@@ -21,29 +19,84 @@ class Colloscope:
         """Get a unique list of available groups"""
         return list(set(c.group for c in self.colles))
 
+    @classmethod
+    def from_filename(cls, filename: str) -> Self:
+        """
+        Returns a list of all the collesDatas by reading a csv file.
+
+        The csv file must follow the next syntaxe:
+        ```csv
+        Matiere,Prof,Jour,Heure,Salle,DD/MM/YY,DD/MM/YY,...,DD/MM/YY,Vacances,DD/MM/YY,...
+        English,Mme Jane,Mercredi,12h,E12,3,5,1,,2
+        ```
+
+        The DD/MM/YY is the first Monday of the week. "Vacances" means a pause for holidays.
+
+        The numbers behind the classroom are the groups identifiers. They will be handled as string, as they can be anything in practice
+        """
+        colles: list[ColleData] = []
+
+        with open(filename, encoding="utf-8", errors="ignore") as f:
+            csv_reader = csv.reader(f, delimiter=",")
+
+            holidays: list[dt.date] = []
+            header = next(csv_reader)
+
+            """
+            | headers
+            | colle slot 1
+            | colle slot 2
+            | ...
+            v
+            """
+            for row in csv_reader:
+                # subject,professor,weekday,hour,classroom,[groups...]
+                subject, professor, week_day, raw_hour, classroom = row[0:5]
+                raw_hour, raw_minute = raw_hour.split("h")  # raw hour pattern: xxhyy
+                hour: dt.time = dt.time(hour=int(raw_hour), minute=int(raw_minute) if raw_minute else 0)
+
+                for x in range(5, len(row)):
+                    # [5],group,group,group,...
+                    group = row[x]
+                    week = dt.datetime.strptime(header[x], "%d/%m/%y")
+                    date: dt.date = day_offset(week, week_day)
+
+                    if group != "":
+                        colles.append(ColleData(group, subject, professor, date, week_day, hour, classroom))
+
+        for i, week in enumerate(header):
+            if week.lower() == "vacances":
+                if not header[i - 1]:
+                    continue
+                week = dt.datetime.strptime(header[i - 1], "%d/%m/%y")
+                holidays.append(week + dt.timedelta(days=7))
+
+        return cls(colles, holidays)
+
 
 @dataclass
 class ColleData:
     group: str
     subject: str
     professor: str
-    week: InitVar[str]  # format: "dd/mm-dd/mm"
+    date: dt.date
     week_day: str
-    hour: str
+    time: dt.time
     classroom: str
 
-    def __post_init__(self, week: str):
+    def __post_init__(self):
         self.week_day = self.week_day.lower()
-        self.date: dt.date = get_date(week, self.week_day)
 
     def __str__(self):
-        return (
-            f"Le {self.str_date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.hour}"
-        )
+        return f"Le {self.str_date}, passe le groupe {self.group} en {self.classroom} avec {self.professor} à {self.str_time}"
 
     @property
     def str_date(self) -> str:
         return self.date.strftime("%d/%m/%Y")
+
+    @property
+    def str_time(self) -> str:
+        return self.time.strftime("%hh%m")
 
     @property
     def long_str_date(self) -> str:
@@ -69,22 +122,11 @@ class ColleData:
         return f"{self.week_day} {self.date.day} {monthName[self.date.month - 1]}"
 
 
-def get_date(week: str, week_day: str) -> dt.date:
+def day_offset(week: dt.date, week_day: str) -> dt.date:
     week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 
-    # dates are formatted like this: "dd/mm-dd/mm"
-    # we only care about the first day of the week
-    day, month = map(int, week.split("-")[0].split("/"))
-
-    if int(month) > 8:
-        year = SCHOLAR_YEAR
-    else:
-        year = SCHOLAR_YEAR + 1
-
-    date = dt.date(year, month, day)
     delta = dt.timedelta(days=week_days.index(week_day))
-
-    return date + delta
+    return week + delta
 
 
 def sort_colles(
@@ -101,66 +143,13 @@ def sort_colles(
     return sorted(colles_datas, key=key)
 
 
-def load_colloscope(filename: str) -> Colloscope:
-    """
-    Returns a list of all the collesDatas by reading the csv file
-    """
-    colles: list[ColleData] = []
-
-    with open(filename, encoding="utf-8", errors="ignore") as f:
-        csv_reader = csv.reader(f, delimiter=",")
-
-        holidays: list[dt.date] = []
-        header = next(csv_reader)
-
-        for row in csv_reader:
-            subject, professor, day, hour, classroom = row[0:5]
-            for x in range(5, len(row)):  # iterate over each colles columns
-                group = row[x]
-                week = header[x]
-                if group != "":
-                    colles.append(ColleData(group, subject, professor, week, day, hour, classroom))
-
-    for i, week in enumerate(header):
-        if week.lower() == "vacances":
-            if not header[i - 1]:
-                continue
-            week = get_date(header[i - 1], "lundi")
-            holidays.append(week + dt.timedelta(days=7))  # add vacances to list
-
-    return Colloscope(colles, holidays)
+def agenda_format_time(time: dt.time) -> str:
+    return time.strftime("%I:%M %p")
 
 
-def convert_hour(raw_time: str) -> str:
-    """Change the hour format from "xh" to "x:xx AM/PM"
-    Ex: 10h00 -> 10:00 AM
-        18h00 -> 6:00 PM
-
-    Args:
-        heure (string): Ex: 18h00
-    """
-    time = raw_time.split("h")
-    minutes = "00" if time[1] == "" else time[1]
-    hours = int(time[0])
-    if hours >= 12:
-        return f"{hours - 12}:{minutes} PM"
-    else:
-        return f"{hours}:{minutes} AM"
-
-
-def add_one_hour(time: str) -> str:
-    """Ajoute une heure à l'heure donnée (pas de colle a minuit donc flemme)
-
-    Args:
-        time (string): Ex: 10:00 AM
-    """
-
-    hour, rest = time.split(":")
-    hour = int(hour)
-    if hour == 12:
-        return f"1:{rest.split(' ')[0]} PM"
-    else:
-        return f"{hour + 1}:{rest}"
+def add_one_hour(time: dt.time) -> str:
+    """Ajoute une heure à l'heure donnée (pas de colle a minuit donc pas besoin de gérer 23h + 1h)"""
+    return agenda_format_time(dt.time(hour=time.hour + 1, minute=time.minute))
 
 
 @overload
@@ -203,7 +192,7 @@ def write_colles(
         writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
         for colle in colles_datas:
-            data = [colle.str_date, colle.hour, colle.professor, colle.classroom, colle.subject]
+            data = [colle.str_date, colle.time, colle.professor, colle.classroom, colle.subject]
             writer.writerow(data)
 
     def agenda_method(f: IO[str]):
@@ -213,11 +202,11 @@ def write_colles(
                 {
                     "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
                     "Start Date": colle.str_date,
-                    "Start Time": convert_hour(colle.hour),
+                    "Start Time": agenda_format_time(colle.time),
                     "End Date": colle.str_date,
-                    "End Time": add_one_hour(convert_hour(colle.hour)),
+                    "End Time": add_one_hour(colle.time),
                     "All Day Event": False,
-                    "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.hour}",
+                    "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.time}",
                     "Location": colle.classroom,
                 }
             )
@@ -251,7 +240,7 @@ def write_colles(
                     "INDENT": "",
                     "AUTHOR": "",
                     "RESPONSIBLE": "",
-                    "DATE": colle.str_date + " " + colle.hour,
+                    "DATE": f"{colle.str_date} {colle.str_time}",
                     "DATE_LANG": "fr",
                     "TIMEZONE": "Europe/Paris",
                 }
@@ -318,7 +307,7 @@ def write_colles(
             pdf.set_font("Arial", "", 9)
             pdf.cell(40, th, colle.long_str_date, border=1, align="C")
             pdf.set_font("Arial", "", 11)
-            pdf.cell(20, th, colle.hour, border=1, align="C")
+            pdf.cell(20, th, colle.str_time, border=1, align="C")
             pdf.cell(col_width * 0.75, th, colle.professor, border=1, align="C")
             pdf.cell(30, th, colle.classroom, border=1, align="C")
             pdf.cell(col_width, th, colle.subject, border=1, align="C")
@@ -350,16 +339,3 @@ def get_group_upcoming_colles(colles: list[ColleData], group: str) -> list[Colle
 
     filtered_colles = [c for c in colles if c.group == group and c.date >= today]
     return filtered_colles
-
-
-# def main(group: str, export_type: Literal["pdf", "csv", "agenda", "todoist"] = "pdf"):
-#     colles = get_all_colles(COLLOSCOPE_PATH)  # list of ColleData objects
-#     holidays = get_holidays(COLLOSCOPE_PATH)
-#     colles = sort_colles(colles, sort_type="temps")  # sort by time
-
-#     filtered_colles = [c for c in colles if c.group == group]
-#     if not filtered_colles:
-#         raise ValueError("Aucune colle n'a été trouvé pour ce groupe")
-
-#     with open("test.pdf", "wb") as f:
-#         write_colles(f, "pdf", filtered_colles, group, holidays)
