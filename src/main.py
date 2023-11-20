@@ -16,6 +16,7 @@ else:
 logger = create_logger(level=getattr(logging, environ.get("LOG_LEVEL", "INFO")))
 logging.getLogger("discord").setLevel(logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
 
 
 def main():

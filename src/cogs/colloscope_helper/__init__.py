@@ -36,10 +36,10 @@ class PlanningHelper(
             if class_ == "example":
                 continue
             try:
-                self.colloscopes[class_.lower()] = cm.load_colloscope(csv_file)
-            except Exception:
+                self.colloscopes[class_.lower()] = cm.Colloscope.from_filename(csv_file)
+            except Exception as e:
                 logger.warning(
-                    __("Error while reading the colloscope from : {filename}", filename=csv_file), stack_info=True
+                    __("Error while reading the colloscope from : {filename}", filename=csv_file), exc_info=e
                 )
 
         decorator = partial(
@@ -118,7 +118,7 @@ class PlanningHelper(
 
         for i in range(min(nb, len(sorted_colles), 12)):
             date = sorted_colles[i].long_str_date
-            output_text += f"**{date.title()} : {sorted_colles[i].hour}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
+            output_text += f"**{date.title()} : {sorted_colles[i].time}** - __{sorted_colles[i].subject}__ - en {sorted_colles[i].classroom} avec {sorted_colles[i].professor}\n"
         await inter.response.send_message(output_text)
 
     @next_colle.autocomplete("group")
@@ -128,7 +128,11 @@ class PlanningHelper(
         if inter.namespace.classe is None:
             return [app_commands.Choice(name="Sélectionnez une classe avant un groupe", value="-1")]
 
-        return [app_commands.Choice(name=g, value=g) for g in self.colloscopes[inter.namespace.classe].groups]
+        return [
+            app_commands.Choice(name=g, value=g)
+            for g in self.colloscopes[inter.namespace.classe].groups
+            if g.startswith(current)
+        ]
 
 
 async def setup(bot: MP2IBot):

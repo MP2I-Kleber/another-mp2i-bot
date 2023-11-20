@@ -1,5 +1,5 @@
-FROM python:3.10.5 as base
-RUN apt-get update && apt-get install -y poppler-utils
+FROM python:3.12-alpine as base
+RUN apk update && apk add poppler-utils && apk add build-base
 WORKDIR /app
 ENV PYTHONUNBUFFERED=0
 COPY ./requirements.txt /app
