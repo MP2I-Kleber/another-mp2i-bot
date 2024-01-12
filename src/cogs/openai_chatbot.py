@@ -89,7 +89,7 @@ class ChatBot(Cog):
             kwargs["user"] = user
 
         async with channel.typing() if channel else nullcontext():  # interesting syntax! :)
-            response = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
+            response = await openai.chat.completion.acreate(**kwargs)  # type: ignore
 
         answer: str = cast(str, response.choices[0].message.content)  # type: ignore
         return answer
