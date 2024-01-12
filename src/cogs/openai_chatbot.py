@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import random
 import re
+from openai import AsyncOpenAI
 from collections.abc import MutableSequence
 from contextlib import nullcontext
 from typing import TYPE_CHECKING, cast
@@ -56,7 +57,7 @@ class ChatBot(Cog):
 
     async def cog_load(self) -> None:
         try:
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+            self.openaiclient = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
         except KeyError:
             raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")
 
@@ -89,7 +90,7 @@ class ChatBot(Cog):
             kwargs["user"] = user
 
         async with channel.typing() if channel else nullcontext():  # interesting syntax! :)
-            response = await openai.chat.completion.acreate(**kwargs)  # type: ignore
+            response = await self.openaiclient.chat.completion.create(**kwargs)  # type: ignore
 
         answer: str = cast(str, response.choices[0].message.content)  # type: ignore
         return answer
