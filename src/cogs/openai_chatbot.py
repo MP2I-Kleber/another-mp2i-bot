@@ -7,14 +7,15 @@ from __future__ import annotations
 import os
 import random
 import re
-from openai import AsyncOpenAI
 from collections.abc import MutableSequence
 from contextlib import nullcontext
-from typing import TYPE_CHECKING, cast
+from functools import partial
+from typing import TYPE_CHECKING
 
 import discord
-import openai
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
+from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from core.constants import CHATGPT_SECRET_PROMPT, GUILD_ID
 
@@ -57,13 +58,13 @@ class ChatBot(Cog):
 
     async def cog_load(self) -> None:
         try:
-            self.openaiclient = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+            self.openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
         except KeyError:
             raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")
 
     async def send_chat_completion(
         self,
-        messages: list[dict[str, str]],
+        messages: list[ChatCompletionMessageParam],
         channel: discord.abc.MessageableChannel | None = None,
         temperature: float = 0.7,
         top_p: float = 1,
@@ -73,26 +74,28 @@ class ChatBot(Cog):
         frequency_penalty: float = 0,
         user: str | None = None,
     ):
-        kwargs = {
-            "model": "gpt-3.5-turbo",
-            "messages": messages,
-            "temperature": temperature,
-            "top_p": top_p,
-            "n": 1,
-            "stop": stop,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-        }
+        create = partial(
+            self.openai_client.chat.completions.create,
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p,
+            n=1,
+            stop=stop,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+        )
 
         if max_tokens is not None:
-            kwargs["max_tokens"] = max_tokens
+            create = partial(create, max_tokens=max_tokens)
         if user is not None:
-            kwargs["user"] = user
+            create = partial(create, user=user)
 
         async with channel.typing() if channel else nullcontext():  # interesting syntax! :)
-            response = await self.openaiclient.chat.completion.create(**kwargs)  # type: ignore
+            response = await create()
 
-        answer: str = cast(str, response.choices[0].message.content)  # type: ignore
+        answer: str | None = response.choices[0].message.content
+        assert answer is not None
         return answer
 
     def clean_content(self, content: str) -> str:
@@ -100,8 +103,8 @@ class ChatBot(Cog):
         regex = re.compile(r"<@!?1015367382727933963> ?")
         return regex.sub("", content, 0)
 
-    async def get_history(self, message: Message) -> list[dict[str, str]]:
-        messages: list[dict[str, str]] = []
+    async def get_history(self, message: Message) -> list[ChatCompletionMessageParam]:
+        messages: list[ChatCompletionMessageParam] = []
 
         async def inner(msg: Message):
             if len(messages) >= self.gpt_history_max_size:
@@ -111,11 +114,13 @@ class ChatBot(Cog):
                 self.messages_cache.append(msg)
 
             me = self.bot.user.id  # type: ignore
+            content = self.clean_content(msg.content or "")
+            chat: ChatCompletionMessageParam
             if message.author.id == me:
-                role = "assistant"
+                chat = {"role": "assistant", "content": content}
             else:
-                role = "user"
-            messages.insert(0, {"role": role, "content": self.clean_content(msg.content or "")})
+                chat = {"role": "user", "content": content}
+            messages.insert(0, chat)
 
             if msg.reference is None:
                 return
@@ -151,7 +156,7 @@ class ChatBot(Cog):
             message (Message): the message object
         """
 
-        messages: list[dict[str, str]] = []
+        messages: list[ChatCompletionMessageParam] = []
         if random.randint(0, 42) == 0:
             messages.append({"role": "system", "content": CHATGPT_SECRET_PROMPT})
 
