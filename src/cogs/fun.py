@@ -241,7 +241,7 @@ class Fun(Cog):
                 self.kevin_webhook = wh[0]
 
         messages = [
-            "Allez dormir, les sups !",
+            # "Allez dormir, les sups !",
             "Le sommeil, c'est pas à négliger ! Au lit !",
             "Bonne nuit, faut aller dormir !",
             "Il est l'heure d'aller se coucher !",
