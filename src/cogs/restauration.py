@@ -5,6 +5,7 @@ This cog will check the restauration page of the school website, and post the me
 from __future__ import annotations
 
 import json
+import logging
 import re
 from os import path
 from typing import TYPE_CHECKING
@@ -19,9 +20,12 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 if TYPE_CHECKING:
     from bot import MP2IBot
 
-
-IMAGES_REGEX = re.compile(r"https://lycee-kleber.com.fr/wp-content/uploads/\d{4}/\d{2}/([^.]+).jpg")
+IMAGES_REGEX = re.compile(
+    r"https://lycee-kleber.com.fr/wp-content/uploads/\d{4}/\d{2}/([^.]+).jpg"
+)
 RESTAURATION_PATH = "./data/restauration.json"
+
+logger = logging.getLogger(__name__)
 
 
 class Restauration(Cog):
@@ -70,7 +74,9 @@ class Restauration(Cog):
             A tuple with fr:MENUs, and a second tuple with fr:ALLERGENES.
         """
         async with httpx.AsyncClient() as client:
-            result = await client.get("https://lycee-kleber.com.fr/restauration", follow_redirects=True)
+            result = await client.get(
+                "https://lycee-kleber.com.fr/restauration", follow_redirects=True
+            )
             page = result.text
 
         scrap = BeautifulSoup(page, "html.parser")
@@ -78,18 +84,29 @@ class Restauration(Cog):
         links: list[str] = [e.get("href") for e in element]
 
         menus: tuple[str, ...] = tuple(
-            l for l in links if (m := IMAGES_REGEX.match(l)) and m.group(1).lower().startswith("menu")
+            l
+            for l in links
+            if (m := IMAGES_REGEX.match(l)) and m.group(1).lower().startswith("menu")
         )
         allergenes: tuple[str, ...] = tuple(
-            l for l in links if (m := IMAGES_REGEX.match(l)) and m.group(1).lower().startswith("allergenes")
+            l
+            for l in links
+            if (m := IMAGES_REGEX.match(l))
+            and m.group(1).lower().startswith("allergenes")
         )
         return menus, allergenes
 
     @tasks.loop(minutes=60)
     async def check_menu(self) -> None:
         """Post the menu if there is a new one, checked every hour."""
-        menus, _ = await self.get_imgs()
-        menus = [m for m in menus if m not in self.already_posted]  # filter with only new ones.
+        try:
+            menus, _ = await self.get_imgs()
+        except Exception:
+            logger.exception("Getting the menu raised an unhandled exception.")
+            return
+        menus = [
+            m for m in menus if m not in self.already_posted
+        ]  # filter with only new ones.
 
         if not menus:
             return
@@ -97,7 +114,9 @@ class Restauration(Cog):
             self.add_restauration_file(img_link)
 
         channels: list[TextChannel] = [
-            ch for ch in self.bot.get_all_channels() if isinstance(ch, TextChannel) and ch.name == "menu-cantine"
+            ch
+            for ch in self.bot.get_all_channels()
+            if isinstance(ch, TextChannel) and ch.name == "menu-cantine"
         ]
 
         for channel in channels:
@@ -106,7 +125,9 @@ class Restauration(Cog):
             except HTTPException:
                 pass
 
-    @app_commands.command(name="allergenes", description="Affiche les allergènes du menu du jour.")
+    @app_commands.command(
+        name="allergenes", description="Affiche les allergènes du menu du jour."
+    )
     async def allergen(self, inter: discord.Interaction):
         _, allergens = await self.get_imgs()
         bn = "\n"
