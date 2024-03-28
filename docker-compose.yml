@@ -9,6 +9,7 @@ services:
       target: prod
     env_file:
       - .env
+    init: true
     tty: true
     restart: always
     volumes:
