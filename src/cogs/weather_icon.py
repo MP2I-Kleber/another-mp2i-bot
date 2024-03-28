@@ -4,6 +4,7 @@ This cog updates the server icon to match the current weather in Strasbourg.
 
 from __future__ import annotations
 
+import logging
 from glob import glob
 from os import path
 from typing import TYPE_CHECKING
@@ -11,7 +12,6 @@ from typing import TYPE_CHECKING
 import httpx
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
-
 from libraries.openweathermap import get_weather
 
 if TYPE_CHECKING:
@@ -20,6 +20,9 @@ if TYPE_CHECKING:
 
 
 LAT, LON = 48.59430090208588, 7.756978617599214
+
+
+logger = logging.getLogger(__name__)
 
 
 class WeatherIcon(Cog):
@@ -44,9 +47,14 @@ class WeatherIcon(Cog):
             new_weather = await get_weather((LAT, LON))
         except httpx.TimeoutException:
             return
+        except Exception:
+            logger.exception("Getting the weather raised an unhandled exception.")
+            return
+
         if (
             self.current_weather is None
-            or new_weather["weather"][0]["icon"] != self.current_weather["weather"][0]["icon"]
+            or new_weather["weather"][0]["icon"]
+            != self.current_weather["weather"][0]["icon"]
         ):
             await self.update_icon(new_weather["weather"][0]["icon"])
         self.current_weather = new_weather
