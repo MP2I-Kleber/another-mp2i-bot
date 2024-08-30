@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class MP2IBot(commands.Bot):
+class FISABot(commands.Bot):
     tree: CustomCommandTree  # type: ignore
 
     def __init__(self):
@@ -33,7 +33,9 @@ class MP2IBot(commands.Bot):
             help_command=None,
         )
 
-        self.personal_informations: list[PersonalInformation] = load_personal_informations()
+        self.personal_informations: list[PersonalInformation] = (
+            load_personal_informations()
+        )
 
     def get_personal_information(self, discord_id: int) -> PersonalInformation | None:
         """Return a object containing personal informations about a user.
@@ -42,7 +44,7 @@ class MP2IBot(commands.Bot):
             discord_id: the discord id of the user
 
         Returns:
-            PersonalInformation: the object containing personal informations about the user
+            Some personal informations about the user.
         """
         return discord.utils.get(self.personal_informations, discord_id=discord_id)
 
@@ -50,7 +52,9 @@ class MP2IBot(commands.Bot):
         try:
             self.guild = await self.fetch_guild(GUILD_ID)
         except discord.Forbidden:
-            logger.critical("Support server cannot be retrieved, check the GUILD_ID constant.")
+            logger.critical(
+                "Support server cannot be retrieved, check the GUILD_ID constant."
+            )
             exit(1)
 
         await self.load_extensions()
@@ -62,9 +66,9 @@ class MP2IBot(commands.Bot):
         self.app_commands: list[AppCommand] = await self.tree.sync()
 
     async def on_ready(self) -> None:
-        bot_user = cast(discord.ClientUser, self.user)  # Bot is logged in, so it's a ClientUser
+        bot_user = cast(discord.ClientUser, self.user)
 
-        activity = discord.Game("BLUFF!")
+        activity = discord.Game("What is the square root of -1 ?")
         await self.change_presence(status=discord.Status.online, activity=activity)
 
         logger.info(f"Logged in as : {bot_user.name}")

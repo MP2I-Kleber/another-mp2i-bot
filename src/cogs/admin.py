@@ -16,14 +16,14 @@ from core.constants import GUILD_ID, LOADED_EXTENSIONS
 if TYPE_CHECKING:
     from discord import Interaction
 
-    from bot import MP2IBot
+    from bot import FISABot
 
 
 logger = logging.getLogger(__name__)
 
 
-class CTS(Cog):  # TODO: add checkers
-    def __init__(self, bot: MP2IBot):
+class Admin(Cog):  # TODO: add checkers
+    def __init__(self, bot: FISABot):
         self.bot = bot
 
     @app_commands.command()
@@ -45,8 +45,8 @@ class CTS(Cog):  # TODO: add checkers
     async def sync_tree(self, inter: Interaction):
         await inter.response.defer()
         await self.bot.sync_tree()
-        await inter.edit_original_response(content=f"Tree successfully synchronized.")
+        await inter.edit_original_response(content="Tree successfully synchronized.")
 
 
-async def setup(bot: MP2IBot):
-    await bot.add_cog(CTS(bot))
+async def setup(bot: FISABot):
+    await bot.add_cog(Admin(bot))

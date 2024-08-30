@@ -12,10 +12,11 @@ from typing import TYPE_CHECKING
 import httpx
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
+
 from libraries.openweathermap import get_weather
 
 if TYPE_CHECKING:
-    from bot import MP2IBot
+    from bot import FISABot
     from libraries.openweathermap.models import WeatherResponse
 
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class WeatherIcon(Cog):
-    def __init__(self, bot: MP2IBot) -> None:
+    def __init__(self, bot: FISABot) -> None:
         self.bot = bot
         self.current_weather: None | WeatherResponse = None
 
@@ -64,5 +65,5 @@ class WeatherIcon(Cog):
         await self.bot.guild.edit(icon=bytes_icon)
 
 
-async def setup(bot: MP2IBot):
+async def setup(bot: FISABot):
     await bot.add_cog(WeatherIcon(bot))

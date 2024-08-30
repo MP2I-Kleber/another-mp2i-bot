@@ -5,7 +5,6 @@ You can communicate with ChatGPT by mentioning the bot. (Except if the API key i
 from __future__ import annotations
 
 import os
-import random
 import re
 from collections.abc import MutableSequence
 from contextlib import nullcontext
@@ -17,27 +16,28 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
-from core.constants import CHATGPT_SECRET_PROMPT, GUILD_ID
+from core.constants import GUILD_ID
+from core.errors import BaseError
 
 if TYPE_CHECKING:
     from discord import Message
 
-    from bot import MP2IBot
+    from bot import FISABot
 
 
 class MessagesCache(MutableSequence[discord.Message]):
     def __init__(self, max_size: int = 100):
-        self._internal: list[Message] = list()
+        self._internal: list[Message] = []
         self._max_size = max_size
         super().__init__()
 
-    def __getitem__(self, i: int):  # type: ignore (no range select)
+    def __getitem__(self, i: int):  # type: ignore[override]
         return self._internal.__getitem__(i)
 
-    def __setitem__(self, i: int, o: Message):
+    def __setitem__(self, i: int, o: Message):  # type: ignore[override]
         return self._internal.__setitem__(i, o)
 
-    def __delitem__(self, i: int):
+    def __delitem__(self, i: int):  # type: ignore[override]
         return self._internal.__delitem__(i)
 
     def __len__(self):
@@ -52,7 +52,7 @@ class MessagesCache(MutableSequence[discord.Message]):
 class ChatBot(Cog):
     gpt_history_max_size = 10
 
-    def __init__(self, bot: MP2IBot) -> None:
+    def __init__(self, bot: FISABot) -> None:
         self.bot = bot
         self.messages_cache: MessagesCache = MessagesCache()
 
@@ -60,7 +60,7 @@ class ChatBot(Cog):
         try:
             self.openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
         except KeyError:
-            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")
+            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")  # noqa: TRY002
 
     async def send_chat_completion(
         self,
@@ -95,7 +95,8 @@ class ChatBot(Cog):
             response = await create()
 
         answer: str | None = response.choices[0].message.content
-        assert answer is not None
+        if answer is None:
+            raise BaseError("OpenAI responded with None.")
         return answer
 
     def clean_content(self, content: str) -> str:
@@ -130,7 +131,10 @@ class ChatBot(Cog):
                     if msg.reference.message_id is None:
                         return
 
-                    cached = next((m for m in self.messages_cache if m.id == msg.reference.message_id), None)
+                    cached = next(
+                        (m for m in self.messages_cache if m.id == msg.reference.message_id),
+                        None,
+                    )
                     if cached is not None:
                         await inner(cached)
                         return
@@ -149,16 +153,15 @@ class ChatBot(Cog):
         await inner(message)
         return messages
 
-    async def ask_to_openIA(self, message: Message) -> None:
-        """Chat with openIA davinci model in discord. No context, no memory, only one message conversation.
-
+    async def ask_to_openai(self, message: Message) -> None:
+        """
         Args:
             message (Message): the message object
         """
 
         messages: list[ChatCompletionMessageParam] = []
-        if random.randint(0, 42) == 0:
-            messages.append({"role": "system", "content": CHATGPT_SECRET_PROMPT})
+        # if random.randint(0, 42) == 0:
+        #     messages.append({"role": "system", "content": CHATGPT_SECRET_PROMPT})
 
         if pi := self.bot.get_personal_information(message.author.id):
             username = pi.firstname
@@ -167,7 +170,6 @@ class ChatBot(Cog):
 
         messages.append({"role": "system", "content": f"The user is called {username}."})
 
-        # remove the mention if starts with @bot blabla
         messages.extend(await self.get_history(message))
 
         response = await self.send_chat_completion(messages, message.channel, user=username)
@@ -175,19 +177,19 @@ class ChatBot(Cog):
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
-        if not message.guild or message.guild.id != GUILD_ID:  # only works into the MP2I guild.
-            return
-        if message.author.id == message.guild.me.id:
-            return
-
         if (
-            message.guild.me in message.mentions
-            or message.reference is not None
-            and isinstance(message.reference.resolved, discord.Message)
-            and message.reference.resolved.author.id == message.guild.me.id
+            message.guild is not None
+            and message.guild.id == GUILD_ID
+            and message.author.id != message.guild.me.id
+            and (
+                message.guild.me in message.mentions
+                or message.reference is not None
+                and isinstance(message.reference.resolved, discord.Message)
+                and message.reference.resolved.author.id == message.guild.me.id
+            )
         ):
-            await self.ask_to_openIA(message)
+            await self.ask_to_openai(message)
 
 
-async def setup(bot: MP2IBot) -> None:
+async def setup(bot: FISABot) -> None:
     await bot.add_cog(ChatBot(bot))
