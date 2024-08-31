@@ -13,4 +13,4 @@ SCHOLAR_YEAR = 2024  # année de la rentrée
 
 # "admin" extension can be added in debug.
 # Also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS = ["fun", "mp2i", "openai_chatbot"]
+LOADED_EXTENSIONS = ["fun", "openai_chatbot"]
