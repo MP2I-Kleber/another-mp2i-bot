@@ -4,7 +4,6 @@ import asyncio
 from typing import TYPE_CHECKING, Any, cast
 
 import discord
-from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
 from core.constants import WASHING_MACHINE_STATE_CHANNEL
@@ -96,12 +95,6 @@ class WashingMachines(commands.Cog):
 
             embeds.append(embed)
         return embeds
-
-    @app_commands.command()
-    async def test(self, inter: Interaction):
-        infos = await self.get_infos()
-        embeds = self.build_embeds(infos)
-        await inter.response.send_message(embeds=embeds)
 
 
 async def setup(bot: FISABot):
