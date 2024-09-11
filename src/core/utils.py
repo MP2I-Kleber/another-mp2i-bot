@@ -45,7 +45,7 @@ def response_constructor(response_type: ResponseType, message: str, embedded: bo
     )
 
     if len(message) > 256:
-        logger.warning(f'This error message is too long to be displayed in author field. "{message}"')
+        logger.warning(__('This error message is too long to be displayed in author field. "{}"', message))
 
     embed.set_author(name=message, icon_url=_embed_author_icon_urls[response_type])
 
@@ -91,3 +91,6 @@ class BraceMessage:
 
     def __str__(self):
         return self.fmt.format(*self.args, **self.kwargs)
+
+
+__ = BraceMessage

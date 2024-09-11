@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from discord import Interaction, Invite
     from discord.app_commands import AppCommandError
 
-    from bot import FISABot
+    from bot import FISABot  # noqa: F401  # TODO: check why
 
 
 logger = logging.getLogger(__name__)

@@ -14,4 +14,4 @@ WASHING_MACHINE_STATE_CHANNEL = 1283128932912205898
 
 # "admin" extension can be added in debug.
 # Also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS = ["fun", "openai_chatbot", "washingmachines"]
+LOADED_EXTENSIONS: list[str] = []  # ["fun", "openai_chatbot", "washingmachines"]

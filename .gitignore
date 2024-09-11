@@ -8,6 +8,7 @@ resources/colloscope.csv
 .vscode/** 
 !.vscode/launch.json
 !.vscode/tasks.json
+.ruff_cache
 
 .fleet/
 **/.DS_Store
