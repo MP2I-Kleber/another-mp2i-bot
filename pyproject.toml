@@ -1,3 +1,23 @@
+[project]
+name = "FISABot"
+version = "1.0"
+dependencies = [
+    # "comment"
+    "discord.py",
+    "httpx",
+    "openai",
+    "pydantic",
+]
+requires-python = ">=3.12"
+
+[tool.uv]
+dev-dependencies = [
+    # "uv",
+    "pyright",
+    "debugpy",
+    "ruff",
+]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
@@ -77,13 +97,3 @@ skip-magic-trailing-comma = false
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-
-# [tool.bandit.assert_used]
-# skips = ["*/test_*.py", "*/test_*.py"]
-
-# [tool.pytest.ini_options]
-# pythonpath = ". src"
-
-
-# [tool.pyright]
-# reportImportCycles = false

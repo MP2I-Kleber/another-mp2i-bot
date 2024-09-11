@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-      target: prod
+      target: production
     env_file:
       - .env
     tty: true
