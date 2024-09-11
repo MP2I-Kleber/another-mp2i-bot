@@ -5,7 +5,10 @@ resources/colloscopes/*
 data/
 resources/colloscope.csv
 
-.vscode/
+.vscode/** 
+!.vscode/launch.json
+!.vscode/tasks.json
+
 .fleet/
 **/.DS_Store
 
