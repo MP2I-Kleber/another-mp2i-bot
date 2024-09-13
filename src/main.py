@@ -4,6 +4,7 @@ from os import environ
 
 from bot import FISABot
 from core.logger import create_logger
+from core.utils import BraceMessage as __
 
 try:
     from dotenv import load_dotenv  # type: ignore
@@ -25,7 +26,7 @@ def main():
     try:
         bot.run(environ["BOT_TOKEN"], reconnect=True, log_handler=None)
     except KeyError as e:
-        logger.critical(f"Missing environment variable {e}.")
+        logger.critical(__("Missing environment variable {}.", e))
         sys.exit(1)
 
 

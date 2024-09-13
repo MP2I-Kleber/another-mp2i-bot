@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-      target: prod
+      target: production
     env_file:
       - .env
     tty: true
@@ -14,3 +14,10 @@ services:
     volumes:
       - ./data:/app/data
       - ./resources:/app/resources
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app
+        - action: rebuild
+          path: ./requirements.txt

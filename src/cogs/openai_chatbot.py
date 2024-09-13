@@ -60,7 +60,7 @@ class ChatBot(Cog):
         try:
             self.openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
         except KeyError:
-            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")  # noqa: TRY002
+            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")  # noqa: TRY002, TRY003
 
     async def send_chat_completion(
         self,
@@ -96,7 +96,7 @@ class ChatBot(Cog):
 
         answer: str | None = response.choices[0].message.content
         if answer is None:
-            raise BaseError("OpenAI responded with None.")
+            raise BaseError("OpenAI responded with None.")  # noqa: TRY003
         return answer
 
     def clean_content(self, content: str) -> str:
