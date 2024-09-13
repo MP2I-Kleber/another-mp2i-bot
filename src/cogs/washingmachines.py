@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import TYPE_CHECKING, Any, cast
 
 import discord
+import httpx
 from discord.ext import commands, tasks
 
 from core.constants import WASHING_MACHINE_STATE_CHANNEL
@@ -14,6 +16,8 @@ if TYPE_CHECKING:
     from libraries.washingmachines.models import MachineInformations
 
     InfosT = dict[BATIMENT, list[MachineInformations]]
+
+logger = logging.getLogger(__name__)
 
 
 class WashingMachines(commands.Cog):
@@ -50,7 +54,12 @@ class WashingMachines(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def maintain_state(self):
-        infos = await self.get_infos()
+        try:
+            infos = await self.get_infos()
+        except httpx.HTTPError:
+            logger.exception("An error occurred while getting washing machines informations.")
+            return
+
         embeds = self.build_embeds(infos)
         await self.state_message.edit(embeds=embeds)
 
