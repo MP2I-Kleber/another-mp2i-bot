@@ -1,7 +1,8 @@
 version: '3'
 
 services:
-  tsp-bot:
+  fisa-bot:
+    init: true
     image: airopi/tsp-bot:latest
     build:
       context: .

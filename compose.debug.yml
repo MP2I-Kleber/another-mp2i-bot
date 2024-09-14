@@ -1,11 +1,9 @@
 version: '3'
 
 services:
-  tsp-bot:
+  fisa-bot:
     build:
       target: debug
     restart: "no"
-    volumes:
-      - ./src:/app
     ports:
       - 5678:5678
