@@ -12,6 +12,7 @@ BASE_URL = "https://api.touchnpay.fr/public/"
 
 class BATIMENT(enum.Enum):
     U5 = "30dwf80glk9ezrig"
+    U6 = "30dwf80gljgu5fxu"
     U7 = "30dwf80glk9ezzr9"
 
 
