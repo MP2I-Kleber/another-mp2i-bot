@@ -28,4 +28,4 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 ENV DEBUG=1
 ENV LOG_LEVEL=DEBUG
 RUN uv pip install debugpy
-CMD ["python", "-m", "debugpy", "--wait-for-client", "--listen", "0.0.0.0:5678", "./main.py"]
+CMD ["python", "-Xfrozen_modules=off", "-m", "debugpy", "--wait-for-client", "--listen", "0.0.0.0:5678", "./main.py"]

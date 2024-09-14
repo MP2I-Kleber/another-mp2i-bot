@@ -41,7 +41,7 @@
                 "panel": "dedicated",
                 "close": true
             },
-            "command": "docker compose -f compose.yml -f compose.debug.yml restart mybot",
+            "command": "docker compose -f compose.yml -f compose.debug.yml restart fisa-bot",
         },
         {
             "label": "wait",
