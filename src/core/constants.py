@@ -15,4 +15,4 @@ CARPOOLING_CHANNEL = 1283143859865387048
 
 # "admin" extension can be added in debug.
 # Also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS: list[str] = ["admin", "carpooling"]  # ["fun", "openai_chatbot", "washingmachines"]
+LOADED_EXTENSIONS: list[str] = ["carpooling", "fun", "openai_chatbot", "washingmachines"]
