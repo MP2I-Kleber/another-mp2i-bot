@@ -11,7 +11,8 @@ MAIN_CHANNEL_ID: int = 1254425991992971398
 SCHOLAR_YEAR = 2024  # année de la rentrée
 
 WASHING_MACHINE_STATE_CHANNEL = 1283128932912205898
+CARPOOLING_CHANNEL = 1283143859865387048
 
 # "admin" extension can be added in debug.
 # Also in debug, it is recommended to remove all extensions except the needed ones.
-LOADED_EXTENSIONS: list[str] = []  # ["fun", "openai_chatbot", "washingmachines"]
+LOADED_EXTENSIONS: list[str] = ["admin", "carpooling"]  # ["fun", "openai_chatbot", "washingmachines"]
