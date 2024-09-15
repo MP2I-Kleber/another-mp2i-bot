@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
@@ -58,6 +59,12 @@ class WashingMachines(commands.Cog):
             infos = await self.get_infos()
         except httpx.HTTPError:
             logger.exception("An error occurred while getting washing machines informations.")
+            return
+        except json.decoder.JSONDecodeError:
+            logger.exception("An error occurred while parsing the json informations")
+            return
+        except Exception:
+            logger.exception("An unknown error occurred.")
             return
 
         embeds = self.build_embeds(infos)
