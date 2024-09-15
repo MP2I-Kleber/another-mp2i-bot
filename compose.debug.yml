@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   fisa-bot:
     build:
