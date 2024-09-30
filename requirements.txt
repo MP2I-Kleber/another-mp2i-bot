@@ -1,9 +1,0 @@
-discord.py
-httpx
-beautifulsoup4
-typing_extensions
-tzdata
-Pillow
-openai
-fpdf2
-pdf2image

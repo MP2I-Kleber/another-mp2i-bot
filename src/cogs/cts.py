@@ -56,7 +56,7 @@ class CTS(Cog):
         stops_list = stops["StopPointsDelivery"]["AnnotatedStopPointRef"]
         if stops_list is None:
             logger.warning("Could not find any stop stations ?")
-            raise Exception("Could not find any stop stations ?")
+            raise Exception("Could not find any stop stations ?")  # noqa: TRY002 # TODO
 
         self.stops: list[Stop] = []
         for stop_paylod in stops_list:

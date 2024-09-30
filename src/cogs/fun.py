@@ -1,3 +1,5 @@
+# ruff: noqa: S311
+
 """
 This is a chaotic cog, regrouping all sort of fun commands.
 """
@@ -8,7 +10,7 @@ import asyncio
 import datetime as dt
 import random
 from functools import partial
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 from zoneinfo import ZoneInfo
 
 import discord
@@ -16,7 +18,6 @@ from discord import AllowedMentions, HTTPException, Member, TextChannel, ui
 from discord.app_commands import command, describe, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
-from typing_extensions import Self
 
 from core.constants import GUILD_ID, MAIN_CHANNEL_ID
 
@@ -30,6 +31,7 @@ class Fun(Cog):
     def __init__(self, bot: MP2IBot) -> None:
         self.kevin_webhook: None | discord.Webhook = None
         self.bot = bot
+        self.init_task: asyncio.Task[Any] | None = None
 
         # reactions that can be randomly added under these users messages.
         self.users_reactions = {
@@ -73,7 +75,11 @@ class Fun(Cog):
             await self.bot.wait_until_ready()
             await self.birthday()
 
-        asyncio.create_task(task())
+        def clean_task(t: asyncio.Task[Any]):
+            self.init_task = None
+
+        self.init_task = asyncio.create_task(task())
+        self.init_task.add_done_callback(clean_task)
 
     async def cog_unload(self) -> None:
         self.birthday.stop()
@@ -142,10 +148,7 @@ class Fun(Cog):
 
         def sorted_key(date: dt.datetime) -> tuple[bool, dt.datetime]:
             passed = date.replace(year=now.year).timestamp() - now.timestamp() < 0
-            if passed:  # anniversaire passé
-                relative = date.replace(year=now.year + 1)
-            else:
-                relative = date.replace(year=now.year)
+            relative = date.replace(year=now.year + 1) if passed else date.replace(year=now.year)
 
             return passed, relative
 
@@ -153,10 +156,10 @@ class Fun(Cog):
             ts: int = int(pi.birthdate.timestamp())
             relative = sorted_key(pi.birthdate)[1]
 
-            l = f"{pi.display} ({pi.origin}). <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)"
+            line = f"{pi.display} ({pi.origin}). <t:{ts}:D> (<t:{int(relative.timestamp())}:R>)"
             if sum(len(row) + 1 for row in rows) > 4000:
                 break
-            rows.append(l)
+            rows.append(line)
 
         embed = discord.Embed(title="Listes des prochains anniversaires", description="\n".join(rows))
         await inter.response.send_message(embed=embed)
@@ -196,8 +199,7 @@ class Fun(Cog):
         """At 7am, check if it's someone's birthday and send a message if it is."""
         now = dt.datetime.now(tz=ZoneInfo("Europe/Paris"))
 
-        guild = self.bot.get_guild(GUILD_ID)
-        assert guild is not None
+        guild = cast(discord.Guild, self.bot.get_guild(GUILD_ID))
 
         for pi in self.bot.personal_informations:  # iter over {user_id: birthdate}
             if pi.birthdate.month == now.month and pi.birthdate.day == now.day:

@@ -7,13 +7,12 @@ from __future__ import annotations
 import json
 import random
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Self, TypedDict, cast
 
 import discord
 from discord import app_commands, ui
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from PIL import Image, ImageDraw
-from typing_extensions import Self
 
 from core.utils import ResponseType, response_constructor
 
@@ -51,7 +50,7 @@ class MP2IGame(Cog):
 
     @staticmethod
     def load_levels() -> list[Level]:
-        with open("./resources/mp2i_game_levels.json", "r") as f:
+        with open("./resources/mp2i_game_levels.json") as f:
             return json.load(f)
 
     @staticmethod
@@ -96,7 +95,7 @@ class MP2IGame(Cog):
                 ((result_w // 2 - center_circle_radius) * 4, (result_h // 2 - center_circle_radius) * 4),
                 (result_w // 2 + center_circle_radius) * 4,
                 (result_h // 2 + center_circle_radius) * 4,
-            ),
+            ),  # type: ignore
             outline=border_color,
             width=border_width * 4,
         )
@@ -138,7 +137,7 @@ class MP2IGame(Cog):
         return buffer
 
     def get_random_level(self) -> tuple[BytesIO, Level]:  # nosec
-        level = random.choice(self.levels)
+        level = random.choice(self.levels)  # noqa: S311
         images = self.load_images_level(level["rid"])
         return self.generate_image_assembly(images), level
 
@@ -188,11 +187,11 @@ class MP2IGameView(ui.View):
             await inter.response.send_message("Je vais pas donner tout le mot non plus !", ephemeral=True)
             return
 
-        index = random.choice(tuple(set(range(len(self.word))) - self.hints))
+        index = random.choice(tuple(set(range(len(self.word))) - self.hints))  # noqa: S311
         self.hints.add(index)
 
         self.embed.description = " ".join(
-            "**\\_**" if i not in self.hints else f"**{l}**" for i, l in enumerate(self.word)
+            "**\\_**" if i not in self.hints else f"**{line}**" for i, line in enumerate(self.word)
         )
 
         await inter.response.edit_message(embed=self.embed)
@@ -253,7 +252,9 @@ class MP2IGameModalGuess(ui.Modal, title="Quel est le mot ?"):
     response: ui.TextInput[Self] = ui.TextInput(label="Réponse :")
 
     def __init__(self, parent: MP2IGameView) -> None:
-        self.response.placeholder = " ".join("_" if i not in parent.hints else l for i, l in enumerate(parent.word))
+        self.response.placeholder = " ".join(
+            "_" if i not in parent.hints else line for i, line in enumerate(parent.word)
+        )
         self.response.max_length = len(parent.word)
         self.response.min_length = len(parent.word)
         self.parent = parent

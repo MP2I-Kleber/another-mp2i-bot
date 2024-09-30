@@ -1,14 +1,41 @@
+[project]
+name = "MP2IBot"
+version = "1.0"
+dependencies = [
+    "discord.py",
+    "httpx",
+    "beautifulsoup4",
+    "typing_extensions",
+    "tzdata",
+    "Pillow",
+    "openai",
+    "fpdf2",
+    "pdf2image",
+]
+requires-python = ">=3.12"
+
+[tool.uv]
+dev-dependencies = [
+    # "uv",
+    "pyright",
+    "debugpy",
+    "ruff",
+    "types-beautifulsoup4",
+    "tox",
+    "tox-uv",
+]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-skipsdist = true
+envlist = py312
 
 [testenv]
-deps = 
-    -r requirements.txt
-    -r requirements.dev.txt
+runner = uv-venv-lock-runner
+description = run all checks on the code
+extras = 
+    dev
 commands =
-    # pytest
     ruff format --check src
     ruff check src
     pyright src/
@@ -19,7 +46,7 @@ line-length = 120
 indent-width = 4
 target-version = "py312"
 src = ["src"]
-exclude = ["bin/msgfmt.py", "alembic/**"]
+exclude = ["bin"]
 
 [tool.ruff.lint]
 select = [
@@ -60,9 +87,9 @@ select = [
 ]
 
 ignore = [
-    "E501",   # line too long (we relate on the formater)
-    "N818",   # Error suffix for exceptions names
-    "PIE796", # Enum contains duplicate value
+    "E501", # line too long (we relate on the formater)
+    "N818", # Error suffix for exceptions names
+    # "PIE796", # Enum contains duplicate value
     "TRY003", # Avoid specifying long messages outsides the exception class
     "ISC001", # To avoid conflicts with the formatter
 ]
@@ -76,6 +103,5 @@ skip-magic-trailing-comma = false
 [tool.ruff.lint.isort]
 combine-as-imports = true
 
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.in"] }
-optional-dependencies.dev = { file = ["requirements.dev.in"] }
+[tool.ruff.lint.pyflakes]
+extend-generics = ["discord.app_commands.CommandTree"]

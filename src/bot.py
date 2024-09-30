@@ -67,8 +67,8 @@ class MP2IBot(commands.Bot):
         activity = discord.Game("BLUFF!")
         await self.change_presence(status=discord.Status.online, activity=activity)
 
-        logger.info(f"Logged in as : {bot_user.name}")
-        logger.info(f"ID : {bot_user.id}")
+        logger.info(__("Logged in as : {}", bot_user.name))
+        logger.info(__("ID : {}", bot_user.id))
 
     async def load_extensions(self) -> None:
         for ext in LOADED_EXTENSIONS:
@@ -78,6 +78,6 @@ class MP2IBot(commands.Bot):
             try:
                 await self.load_extension(ext)
             except commands.errors.ExtensionError as e:
-                logger.error(__("Failed to load extension {}.", ext), exc_info=e)
+                logger.exception(__("Failed to load extension {}.", ext), exc_info=e)
             else:
                 logger.info(__("Extension {} loaded successfully.", ext))

@@ -6,11 +6,10 @@ https://github.com/Rapptz/discord.py/blob/master/discord/client.py
 You should not have to change anything here.
 """
 
-
 import logging
 import os
 import sys
-from typing import Any
+from typing import Any, ClassVar
 
 
 def stream_supports_color(stream: Any) -> bool:
@@ -37,7 +36,7 @@ class _ColorFormatter(logging.Formatter):
     # 100-107 are the same as the bright ones but for the background.
     # 1 means bold, 2 means dim, 0 means reset, and 4 means underline.
 
-    LEVEL_COLOURS = [
+    LEVEL_COLOURS: ClassVar = [
         (logging.DEBUG, "\x1b[40;1m"),
         (logging.INFO, "\x1b[34;1m"),
         (logging.WARNING, "\x1b[33;1m"),
@@ -45,7 +44,7 @@ class _ColorFormatter(logging.Formatter):
         (logging.CRITICAL, "\x1b[41m"),
     ]
 
-    FORMATS = {
+    FORMATS: ClassVar = {
         level: logging.Formatter(
             f"\x1b[30;1m%(asctime)s\x1b[0m {colour}%(levelname)-8s\x1b[0m \x1b[35m%(name)s\x1b[0m %(message)s",
             "%Y-%m-%d %H:%M:%S",

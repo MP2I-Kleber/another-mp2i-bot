@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import httpx
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
+
 from libraries.openweathermap import get_weather
 
 if TYPE_CHECKING:
@@ -53,8 +54,7 @@ class WeatherIcon(Cog):
 
         if (
             self.current_weather is None
-            or new_weather["weather"][0]["icon"]
-            != self.current_weather["weather"][0]["icon"]
+            or new_weather["weather"][0]["icon"] != self.current_weather["weather"][0]["icon"]
         ):
             await self.update_icon(new_weather["weather"][0]["icon"])
         self.current_weather = new_weather
