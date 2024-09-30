@@ -31,7 +31,7 @@ class PlanningHelper(
 
         self.colloscopes: dict[str, cm.Colloscope] = {}
 
-        for csv_file in glob("./resources/colloscopes/*.csv"):
+        for csv_file in glob("./external_data/colloscopes/*.csv"):
             class_ = os.path.splitext(os.path.basename(csv_file))[0]
             if class_ == "example":
                 continue

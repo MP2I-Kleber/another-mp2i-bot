@@ -19,8 +19,6 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext import tasks
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from core.constants import GUILD_ID, MAIN_CHANNEL_ID
-
 if TYPE_CHECKING:
     from discord import Interaction, Message
 
@@ -67,7 +65,7 @@ class Fun(Cog):
         }
 
     async def cog_load(self) -> None:
-        self.general_channel = cast(TextChannel, await self.bot.fetch_channel(MAIN_CHANNEL_ID))
+        self.general_channel = cast(TextChannel, await self.bot.fetch_channel(self.bot.config.birthday_channel_id))
         self.birthday.start()
         self.kevin_say_goodnight.start()
 
@@ -86,7 +84,7 @@ class Fun(Cog):
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
-        if not message.guild or message.guild.id != GUILD_ID:  # only works into the MP2I guild.
+        if not message.guild or message.guild.id != self.bot.config.guild_id:  # only works into the MP2I guild.
             return
         if message.author.id == message.guild.me.id:
             return
@@ -140,7 +138,7 @@ class Fun(Cog):
         if not isinstance(inter.channel, discord.abc.Messageable):
             return
 
-        if not inter.guild or inter.guild.id != GUILD_ID:
+        if not inter.guild or inter.guild.id != self.bot.config.guild_id:
             return
 
         rows: list[str] = []
@@ -199,7 +197,7 @@ class Fun(Cog):
         """At 7am, check if it's someone's birthday and send a message if it is."""
         now = dt.datetime.now(tz=ZoneInfo("Europe/Paris"))
 
-        guild = cast(discord.Guild, self.bot.get_guild(GUILD_ID))
+        guild = cast(discord.Guild, self.bot.get_guild(self.bot.config.guild_id))
 
         for pi in self.bot.personal_informations:  # iter over {user_id: birthdate}
             if pi.birthdate.month == now.month and pi.birthdate.day == now.day:

@@ -10,8 +10,6 @@ from typing import Any, TypedDict
 
 import discord
 
-from core.utils import BraceMessage as __
-
 logger = logging.getLogger(__name__)
 
 
@@ -93,3 +91,6 @@ class BraceMessage:
 
     def __str__(self):
         return self.fmt.format(*self.args, **self.kwargs)
+
+
+__ = BraceMessage

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
-from core.constants import GUILD_ID, LOADED_EXTENSIONS
+from core._config import config
 
 if TYPE_CHECKING:
     from discord import Interaction
@@ -27,7 +27,7 @@ class CTS(Cog):  # TODO: add checkers
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.guilds(GUILD_ID)
+    @app_commands.guilds(config.guild_id)
     async def reload_extension(self, inter: Interaction, extension: str):
         await self.bot.reload_extension(extension)
         await inter.response.send_message(f"Extension [{extension}] reloaded successfully")
@@ -36,12 +36,12 @@ class CTS(Cog):  # TODO: add checkers
     async def extension_autocompleter(self, inter: Interaction, current: str) -> list[app_commands.Choice[str]]:
         return [
             app_commands.Choice(name=ext, value="cogs." * (not ext.startswith("cogs.")) + ext)
-            for ext in LOADED_EXTENSIONS
+            for ext in config.loaded_extensions
             if ext.startswith(current)
         ]
 
     @app_commands.command()
-    @app_commands.guilds(GUILD_ID)
+    @app_commands.guilds(config.guild_id)
     async def sync_tree(self, inter: Interaction):
         await inter.response.defer()
         await self.bot.sync_tree()

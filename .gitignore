@@ -1,9 +1,12 @@
-resources/personal_informations/*
-!resources/personal_informations/example.csv
-resources/colloscopes/*
-!resources/colloscopes/example.csv
+external_data/personal_informations/*
+!external_data/personal_informations/example.csv
+external_data/colloscopes/*
+!external_data/colloscopes/example.csv
 data/
-resources/colloscope.csv
+caddy_config/
+filebrowser_config/
+Caddyfile
+config.toml
 
 .vscode/**
 !.vscode/launch.json

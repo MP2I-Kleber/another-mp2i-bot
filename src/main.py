@@ -1,8 +1,10 @@
 import logging
 import sys
 from os import environ
+from pathlib import Path
 
 from bot import MP2IBot
+from core._config import Config
 from core.logger import create_logger
 from core.utils import BraceMessage as __
 
@@ -21,6 +23,8 @@ logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
 
 
 def main():
+    Config.define_config(Path("./config.toml"))
+
     mp2ibot = MP2IBot()
 
     try:

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, cast
 import discord
 from discord.ext import commands
 
-from core.constants import GUILD_ID, LOADED_EXTENSIONS
+from core._config import config
 from core.custom_command_tree import CustomCommandTree
 from core.personal_infos_loader import PersonalInformation, load_personal_informations
 from core.utils import BraceMessage as __
@@ -34,6 +34,7 @@ class MP2IBot(commands.Bot):
         )
 
         self.personal_informations: list[PersonalInformation] = load_personal_informations()
+        self.config = config
 
     def get_personal_information(self, discord_id: int) -> PersonalInformation | None:
         """Return a object containing personal informations about a user.
@@ -48,7 +49,7 @@ class MP2IBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         try:
-            self.guild = await self.fetch_guild(GUILD_ID)
+            self.guild = await self.fetch_guild(config.guild_id)
         except discord.Forbidden:
             logger.critical("Support server cannot be retrieved, check the GUILD_ID constant.")
             exit(1)
@@ -70,8 +71,13 @@ class MP2IBot(commands.Bot):
         logger.info(__("Logged in as : {}", bot_user.name))
         logger.info(__("ID : {}", bot_user.id))
 
+        # This is a workaround concerning the delayed logs.
+        # While the loop isn't ready, the logs can't be sent.
+        # At this point, the loop is ready, so this log is a signal to tell the logger the loop is ready.
+        logger.warning("This warning should be ignored.", extra={"ignore_discord": True})
+
     async def load_extensions(self) -> None:
-        for ext in LOADED_EXTENSIONS:
+        for ext in config.loaded_extensions:
             if not ext.startswith("cogs."):
                 ext = "cogs." + ext
 

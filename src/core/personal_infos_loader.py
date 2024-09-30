@@ -62,8 +62,8 @@ def load_personal_informations() -> list[PersonalInformation]:
                 except ValueError as e:
                     logger.warning(__("Row {} is invalid in {}.csv: {}", i + 1, origin, e))
 
-    for csv_file in glob("./resources/personal_informations/*.csv"):
-        if csv_file == "./resources/personal_informations/example.csv":
+    for csv_file in glob("./external_data/personal_informations/*.csv"):
+        if csv_file == "./external_data/personal_informations/example.csv":
             continue
         logger.debug(__("Reading {}", csv_file))
         result.extend(read(csv_file))

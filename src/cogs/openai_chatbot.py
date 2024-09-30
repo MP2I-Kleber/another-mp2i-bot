@@ -16,7 +16,6 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
-from core.constants import GUILD_ID
 from core.errors import BaseError
 
 if TYPE_CHECKING:
@@ -179,7 +178,7 @@ class ChatBot(Cog):
     async def on_message(self, message: Message) -> None:
         if (
             message.guild is not None
-            and message.guild.id == GUILD_ID
+            and message.guild.id == self.bot.config.guild_id
             and message.author.id != message.guild.me.id
             and (
                 message.guild.me in message.mentions
