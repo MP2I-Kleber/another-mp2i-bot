@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class CTS(Cog):
+class Admin(Cog):
     def __init__(self, bot: MP2IBot):
         self.bot = bot
 
@@ -79,4 +79,4 @@ class CTS(Cog):
 
 
 async def setup(bot: MP2IBot):
-    await bot.add_cog(CTS(bot))
+    await bot.add_cog(Admin(bot))
