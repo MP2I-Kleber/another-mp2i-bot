@@ -1,7 +1,7 @@
 services:
   mp2i-bot:
     image: airopi/mp2i-bot:latest
-    user: "1001:1001"
+    user: "1000:1000"
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -19,12 +19,10 @@ services:
 
   filebrowser:
     image: hurlenko/filebrowser
-    user: "1001:1001"
+    user: "1000:1000"
     volumes:
       - ./external_data:/data
       - ./filebrowser_config:/config
-    # environment:
-    #   - FB_BASEURL=/filebrowser
     env_file:
       - .env
     restart: always
