@@ -28,10 +28,20 @@ class PlanningHelper(
 ):
     def __init__(self, bot: MP2IBot):
         self.bot = bot
+        self.colloscopes: dict[str, cm.Colloscope]
 
-        self.colloscopes: dict[str, cm.Colloscope] = {}
+        self.load_colloscope()
 
-        for csv_file in glob("./resources/colloscopes/*.csv"):
+        decorator = partial(
+            app_commands.choices, class_=[app_commands.Choice(name=k, value=k) for k in self.colloscopes]
+        )
+        decorator()(self.quicklook)
+        decorator()(self.export)
+        decorator()(self.next_colle)
+
+    def load_colloscope(self):
+        self.colloscopes = {}
+        for csv_file in glob("./external_data/colloscopes/*.csv"):
             class_ = os.path.splitext(os.path.basename(csv_file))[0]
             if class_ == "example":
                 continue
@@ -41,13 +51,6 @@ class PlanningHelper(
                 logger.warning(
                     __("Error while reading the colloscope from : {filename}", filename=csv_file), exc_info=e
                 )
-
-        decorator = partial(
-            app_commands.choices, class_=[app_commands.Choice(name=k, value=k) for k in self.colloscopes]
-        )
-        decorator()(self.quicklook)
-        decorator()(self.export)
-        decorator()(self.next_colle)
 
     @app_commands.command(name="aperçu", description="Affiche l'aperçu du colloscope")
     @app_commands.rename(class_="classe", group="groupe")

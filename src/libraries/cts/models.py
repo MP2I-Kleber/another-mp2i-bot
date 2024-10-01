@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypedDict
 
-
 # Response lines
 
 
@@ -63,7 +62,9 @@ class Location(TypedDict):
 
 
 class ExtensionAnnotatedStopPointStructure(TypedDict):
-    StopCode: str | None  # Client stop code, recommendated (cts api doc :) to request the StopMonitoring API. This code identify the stop with a precise direction ("one side" of the road).
+    StopCode: (
+        str | None
+    )  # Client stop code, recommendated (cts api doc :) to request the StopMonitoring API. This code identify the stop with a precise direction ("one side" of the road).
     LogicalStopCode: str | None
     IsFlexhopStop: bool
     distance: int | None

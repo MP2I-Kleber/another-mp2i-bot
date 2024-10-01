@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import operator
 import os
 from dataclasses import dataclass
-from typing import IO, Any, Callable, Literal, Self, cast, overload
+from typing import IO, Any, Literal, Self, cast, overload
 
 from fpdf import FPDF
 
@@ -17,7 +18,7 @@ class Colloscope:
     @property
     def groups(self) -> list[str]:
         """Get a unique list of available groups"""
-        return list(set(c.group for c in self.colles))
+        return list({c.group for c in self.colles})
 
     @classmethod
     def from_filename(cls, filename: str) -> Self:
@@ -104,7 +105,7 @@ class ColleData:
         Return the date in a human readable format :
         Ex: "Lundi 10 janvier"
         """
-        monthName = [
+        month_name = [
             "janvier",
             "février",
             "mars",
@@ -119,7 +120,7 @@ class ColleData:
             "décembre",
         ]
 
-        return f"{self.week_day} {self.date.day} {monthName[self.date.month - 1]}"
+        return f"{self.week_day} {self.date.day} {month_name[self.date.month - 1]}"
 
 
 def day_offset(week: dt.date, week_day: str) -> dt.date:
@@ -132,14 +133,8 @@ def day_offset(week: dt.date, week_day: str) -> dt.date:
 def sort_colles(
     colles_datas: list[ColleData], sort_type: Literal["temps", "prof", "groupe"] = "temps"
 ) -> list[ColleData]:
-    key: Callable[[ColleData], Any]
-    match sort_type:
-        case "temps":
-            key = lambda c: c.date
-        case "prof":
-            key = lambda c: c.professor
-        case "groupe":
-            key = lambda c: c.group
+    table = {"temps": "date", "prof": "professor", "groupe": "group"}
+    key = operator.attrgetter(table[sort_type])
     return sorted(colles_datas, key=key)
 
 
@@ -159,8 +154,7 @@ def write_colles(
     colles_datas: list[ColleData],
     group: str,
     holidays: list[dt.date],
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -170,8 +164,7 @@ def write_colles(
     colles_datas: list[ColleData],
     group: str,
     holidays: list[dt.date],
-) -> None:
-    ...
+) -> None: ...
 
 
 def write_colles(
@@ -183,7 +176,7 @@ def write_colles(
 ):
     export_path = f"./groupe{group}"
 
-    if os.path.exists(export_path) == False:
+    if not os.path.exists(export_path):
         os.mkdir(export_path)
 
     def csv_method(f: IO[str]):
@@ -192,24 +185,23 @@ def write_colles(
         writer.writerow(["date", "heure", "prof", "salle", "matière"])
 
         for colle in colles_datas:
-            data = [colle.str_date, colle.time, colle.professor, colle.classroom, colle.subject]
+            data: list[Any] = [colle.str_date, colle.time, colle.professor, colle.classroom, colle.subject]
             writer.writerow(data)
 
     def agenda_method(f: IO[str]):
-        agenda: list[dict[str, Any]] = []
-        for colle in colles_datas:
-            agenda.append(
-                {
-                    "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
-                    "Start Date": colle.str_date,
-                    "Start Time": agenda_format_time(colle.time),
-                    "End Date": colle.str_date,
-                    "End Time": add_one_hour(colle.time),
-                    "All Day Event": False,
-                    "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.time}",
-                    "Location": colle.classroom,
-                }
-            )
+        agenda: list[dict[str, Any]] = [
+            {
+                "Subject": f"{colle.subject} {colle.professor} {colle.classroom}",
+                "Start Date": colle.str_date,
+                "Start Time": agenda_format_time(colle.time),
+                "End Date": colle.str_date,
+                "End Time": add_one_hour(colle.time),
+                "All Day Event": False,
+                "Description": f"Colle de {colle.subject} avec {colle.professor} en {colle.classroom} a {colle.time}",
+                "Location": colle.classroom,
+            }
+            for colle in colles_datas
+        ]
 
         fieldnames = [
             "Subject",
@@ -229,22 +221,21 @@ def write_colles(
 
     def todoist_method(f: IO[str]):
         type, priority = "task", 2
-        todoist: list[dict[str, Any]] = []
-        for colle in colles_datas:
-            todoist.append(
-                {
-                    "TYPE": type,
-                    "CONTENT": f"Colle de {colle.subject} avec {colle.professor}",
-                    "DESCRIPTION": f"Salle {colle.classroom}",
-                    "PRIORITY": priority,
-                    "INDENT": "",
-                    "AUTHOR": "",
-                    "RESPONSIBLE": "",
-                    "DATE": f"{colle.str_date} {colle.str_time}",
-                    "DATE_LANG": "fr",
-                    "TIMEZONE": "Europe/Paris",
-                }
-            )
+        todoist: list[dict[str, Any]] = [
+            {
+                "TYPE": type,
+                "CONTENT": f"Colle de {colle.subject} avec {colle.professor}",
+                "DESCRIPTION": f"Salle {colle.classroom}",
+                "PRIORITY": priority,
+                "INDENT": "",
+                "AUTHOR": "",
+                "RESPONSIBLE": "",
+                "DATE": f"{colle.str_date} {colle.str_time}",
+                "DATE_LANG": "fr",
+                "TIMEZONE": "Europe/Paris",
+            }
+            for colle in colles_datas
+        ]
 
         fieldnames = [
             "TYPE",
@@ -265,7 +256,7 @@ def write_colles(
             writer.writerow(colle)
 
     def pdf_method(f: IO[bytes]):
-        vacanceIndex = 0
+        vacance_index = 0
         pdf = FPDF()
         pdf.add_font("Arial", "", "./resources/fonts/arial.ttf")
         pdf.add_font("Arial", "B", "./resources/fonts/arial_bold.ttf")
@@ -295,14 +286,13 @@ def write_colles(
         pdf.ln(th)
 
         for i, colle in enumerate(colles_datas, 1):
-            if vacanceIndex < len(holidays):  # fait un saut de ligne à chaque vacances
-                if colle.date > holidays[vacanceIndex]:
-                    pdf.ln(th * 0.5)
-                    pdf.set_font("Arial", "B", 14)
-                    pdf.cell(90 + 2 * col_width, th, f"Vacances", align="C")
-                    pdf.set_font("Arial", "", 11)
-                    pdf.ln(th * 1.5)
-                    vacanceIndex += 1
+            if vacance_index < len(holidays) and colle.date > holidays[vacance_index]:
+                pdf.ln(th * 0.5)
+                pdf.set_font("Arial", "B", 14)
+                pdf.cell(90 + 2 * col_width, th, "Vacances", align="C")
+                pdf.set_font("Arial", "", 11)
+                pdf.ln(th * 1.5)
+                vacance_index += 1
             pdf.cell(10, th, str(i), border=1, align="C")
             pdf.set_font("Arial", "", 9)
             pdf.cell(40, th, colle.long_str_date, border=1, align="C")

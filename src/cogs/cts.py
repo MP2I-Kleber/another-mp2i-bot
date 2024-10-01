@@ -16,7 +16,6 @@ from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from discord.utils import get
 
-from core.constants import GUILD_ID
 from core.errors import BaseError
 from core.utils import ResponseType, response_constructor
 from libraries.cts import get_lines, get_stop_times, get_stops
@@ -56,7 +55,7 @@ class CTS(Cog):
         stops_list = stops["StopPointsDelivery"]["AnnotatedStopPointRef"]
         if stops_list is None:
             logger.warning("Could not find any stop stations ?")
-            raise Exception("Could not find any stop stations ?")
+            raise Exception("Could not find any stop stations ?")  # noqa: TRY002 # TODO
 
         self.stops: list[Stop] = []
         for stop_paylod in stops_list:
@@ -76,7 +75,7 @@ class CTS(Cog):
         else:
             lines_names: list[str] = [line["LineRef"] for line in lines_list if line["LineRef"] is not None]
 
-        guild = await self.bot.fetch_guild(GUILD_ID)
+        guild = await self.bot.fetch_guild(self.bot.config.guild_id)
         for line_name in lines_names:
             if line_name in self.emojis:
                 continue

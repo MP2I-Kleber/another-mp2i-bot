@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any
 
 from discord.app_commands import CommandNotFound, CommandTree
 
+from core.utils import BraceMessage as __
+
 from .errors import BaseError
 from .utils import ResponseType, response_constructor
 
@@ -48,5 +50,11 @@ class CustomCommandTree(CommandTree["MP2IBot"]):
             case BaseError():
                 return await self.send_error(interaction, str(error))
             case e:
-                await self.send_error(interaction, f"Une erreur random est survenue j'ai pas capté sorry.\n{error}")
-                logger.error(f"An unhandled error happened : {error} ({type(error)})", exc_info=e)
+                await self.send_error(
+                    interaction,
+                    f"Une erreur random est survenue j'ai pas capté sorry.\n{error}",
+                )
+                logger.error(
+                    __("An unhandled error happened : {} ({})", error, type(error)),
+                    exc_info=e,
+                )

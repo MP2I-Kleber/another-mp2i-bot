@@ -1,6 +1,0 @@
-bandit
-pyright
-isort
-black
-
-types-beautifulsoup4
