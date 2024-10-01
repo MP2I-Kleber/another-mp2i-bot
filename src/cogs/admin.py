@@ -6,7 +6,7 @@ Allow to dynamically reload extensions and sync the tree, to avoid restarting th
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
 from discord import app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from discord import Interaction
 
     from bot import MP2IBot
-    from cogs.colloscope_helper import PlanningHelper
 
 
 logger = logging.getLogger(__name__)
@@ -60,14 +59,10 @@ class CTS(Cog):
     async def reload_data(self, inter: Interaction, target: Literal["colloscope", "personal_informations"]):
         match target:
             case "colloscope":
-                planning_helper_cog = self.bot.extensions.get("PlanningHelper")
-                if planning_helper_cog is None:
-                    await inter.response.send_message("The extension isn't activated.")
-                    return
-                if TYPE_CHECKING:
-                    planning_helper_cog = cast(PlanningHelper, planning_helper_cog)
-                planning_helper_cog.load_colloscope()
-                await inter.response.send_message("Colloscopes reloaded with success (check the log to be sure).")
+                await inter.response.send_message(
+                    "To reload the colloscope, you need to reload the colloscope_helper extension using /reload_extension.\n"
+                    "If the classes aren't updated, you may also need to use the sync_tree command."
+                )
 
             case "personal_informations":
                 try:

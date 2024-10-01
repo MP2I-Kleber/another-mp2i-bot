@@ -1,8 +1,6 @@
 guild_id = 1015136740127821885
 birthday_channel_id = 1015172827650998352
 
-# "admin" extension can be added in debug.
-# Also in debug, it is recommended to remove all extensions except the needed ones.
 loaded_extensions = [
     "weather_icon",
     "cts",
@@ -11,4 +9,6 @@ loaded_extensions = [
     "mp2i",
     "openai_chatbot",
     "colloscope_helper",
+    "birthday",
+    "admin",
 ]
