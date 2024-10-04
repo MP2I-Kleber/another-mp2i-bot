@@ -9,7 +9,7 @@
             "presentation": {
                 "focus": true,
             },
-            "command": "docker compose -f compose.yml -f compose.debug.yml build",
+            "command": "docker compose -f compose.yml -f compose.dev.yml build",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -23,7 +23,7 @@
                 "focus": true,
                 "panel": "new",
             },
-            "command": "docker compose -f compose.yml -f compose.debug.yml watch",
+            "command": "docker compose -f compose.yml -f compose.dev.yml watch",
         },
         {
             "label": "down",
@@ -41,7 +41,7 @@
                 "panel": "dedicated",
                 "close": true
             },
-            "command": "docker compose -f compose.yml -f compose.debug.yml restart fisa-bot",
+            "command": "docker compose -f compose.yml -f compose.dev.yml restart fisa-bot",
         },
         {
             "label": "wait",
@@ -51,7 +51,7 @@
                 "panel": "dedicated",
                 "close": true
             },
-            "command": "sleep 0.5",
+            "command": "sleep 1",
         }
     ]
 }

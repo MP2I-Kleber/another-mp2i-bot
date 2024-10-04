@@ -27,7 +27,6 @@ from discord import (
 from discord.ext import commands
 from discord.interactions import Interaction
 
-from core.constants import CARPOOLING_CHANNEL, GUILD_ID
 from core.errors import BaseError
 
 if TYPE_CHECKING:
@@ -58,10 +57,10 @@ class Context:
         return dataclasses.replace(self, **kwargs)
 
     async def getch_thread(self, bot: FISABot):
-        guild = cast(Guild, bot.get_guild(GUILD_ID))
+        guild = cast(Guild, bot.get_guild(bot.config.guild_id))
 
         if self.thread_id is None:
-            raise ValueError("context.thread_id shouldn't be None !")  # noqa: TRY003
+            raise ValueError("context.thread_id shouldn't be None !")
 
         thread = guild.get_thread(self.thread_id) or await guild.fetch_channel(self.thread_id)
         if not isinstance(thread, Thread):
@@ -115,7 +114,7 @@ class Carpooling(commands.Cog):
 
     async def load_carpooling_task(self):
         await self.bot.wait_until_ready()
-        channel = cast(TextChannel, self.bot.get_channel(CARPOOLING_CHANNEL))
+        channel = cast(TextChannel, self.bot.get_channel(self.bot.config.carpooling_channel))
         async for message in channel.history():  # all the active carpooling should be present in the last 100 messages
             try:
                 context = await Context.from_message(message)

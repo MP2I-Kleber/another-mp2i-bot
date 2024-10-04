@@ -16,19 +16,21 @@ dev-dependencies = [
     "pyright",
     "debugpy",
     "ruff",
+    "tox",
+    "tox-uv",
 ]
 
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-skipsdist = true
+envlist = py312
 
 [testenv]
-deps = 
-    -r requirements.txt
-    -r requirements.dev.txt
+runner = uv-venv-lock-runner
+description = run all checks on the code
+extras = 
+    dev
 commands =
-    # pytest
     ruff format --check src
     ruff check src
     pyright src/
@@ -39,7 +41,7 @@ line-length = 120
 indent-width = 4
 target-version = "py312"
 src = ["src"]
-exclude = ["bin/msgfmt.py", "alembic/**"]
+exclude = ["bin"]
 
 [tool.ruff.lint]
 select = [
@@ -82,13 +84,10 @@ ignore = [
     "E501", # line too long (we relate on the formater)
     "N818", # Error suffix for exceptions names
     # "PIE796", # Enum contains duplicate value
-    # "TRY003", # Avoid specifying long messages outsides the exception class
+    "TRY003", # Avoid specifying long messages outsides the exception class
     "ISC001", # To avoid conflicts with the formatter
 ]
 dummy-variable-rgx = '^\*{0,2}(_$|__$|unused_|dummy_)'
-
-[tool.ruff.lint.pyflakes]
-extend-generics = ["bot.FISABot"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -97,3 +96,6 @@ skip-magic-trailing-comma = false
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
+
+[tool.ruff.lint.pyflakes]
+extend-generics = ["discord.app_commands.CommandTree"]

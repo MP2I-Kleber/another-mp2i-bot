@@ -9,7 +9,6 @@ import discord
 import httpx
 from discord.ext import commands, tasks
 
-from core.constants import WASHING_MACHINE_STATE_CHANNEL
 from libraries.washingmachines import BATIMENT, MachineState, get_machine_state
 
 if TYPE_CHECKING:
@@ -42,7 +41,7 @@ class WashingMachines(commands.Cog):
         embeds = self.build_embeds(infos)
         msg = await self.get_state_message()
         if msg is None:
-            channel = cast(discord.TextChannel, self.bot.get_channel(WASHING_MACHINE_STATE_CHANNEL))
+            channel = cast(discord.TextChannel, self.bot.get_channel(self.bot.config.washing_machine_state_channel))
             msg = await channel.send(embeds=embeds)
         else:
             await msg.edit(embeds=embeds)
@@ -71,7 +70,7 @@ class WashingMachines(commands.Cog):
         await self.state_message.edit(embeds=embeds)
 
     async def get_state_message(self) -> discord.Message | None:
-        channel = cast(discord.TextChannel, self.bot.get_channel(WASHING_MACHINE_STATE_CHANNEL))
+        channel = cast(discord.TextChannel, self.bot.get_channel(self.bot.config.washing_machine_state_channel))
         bot_user = cast(discord.ClientUser, self.bot.user)
 
         async for msg in channel.history():

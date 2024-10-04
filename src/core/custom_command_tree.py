@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from discord import Interaction, Invite
     from discord.app_commands import AppCommandError
 
-    from bot import FISABot  # noqa: F401  # TODO: check why
+    from bot import FISABot
 
 
 logger = logging.getLogger(__name__)
@@ -56,4 +56,7 @@ class CustomCommandTree(CommandTree["FISABot"]):
                     interaction,
                     f"Une erreur random est survenue j'ai pas capté sorry.\n{error}",
                 )
-                logger.error(__("An unhandled error happened : {error} ({t})", error=error, t=type(error)), exc_info=e)
+                logger.error(
+                    __("An unhandled error happened : {} ({})", error, type(error)),
+                    exc_info=e,
+                )
