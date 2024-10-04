@@ -67,7 +67,11 @@ class WashingMachines(commands.Cog):
             return
 
         embeds = self.build_embeds(infos)
-        await self.state_message.edit(embeds=embeds)
+        if embeds != self.state_message.embeds:
+            try:
+                await self.state_message.edit(embeds=embeds)
+            except Exception:
+                logger.exception("Failed to edit the washing machine state message.")
 
     async def get_state_message(self) -> discord.Message | None:
         channel = cast(discord.TextChannel, self.bot.get_channel(self.bot.config.washing_machine_state_channel))
