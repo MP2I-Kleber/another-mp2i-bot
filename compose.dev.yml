@@ -1,7 +1,11 @@
 services:
   fisa-bot:
+    user: 0:0
     build:
       target: debug
     restart: "no"
     ports:
       - 5678:5678
+  filebrowser:
+    ports:
+      - 80:8080

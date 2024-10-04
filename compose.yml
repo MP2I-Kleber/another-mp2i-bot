@@ -1,7 +1,7 @@
 services:
   fisa-bot:
-    init: true
     image: airopi/tsp-bot:latest
+    user: "1000:1000"
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -9,14 +9,33 @@ services:
     env_file:
       - .env
     tty: true
+    init: true
     restart: always
     volumes:
       - ./data:/app/data
       - ./resources:/app/resources
+      - ./config.toml:/app/config.toml
+      - ./external_data:/app/external_data
     develop:
       watch:
         - action: sync
           path: ./src
           target: /app
         - action: rebuild
-          path: ./requirements.txt
+          path: ./uv.lock
+        - action: rebuild
+          path: ./config.toml
+        - action: rebuild
+          path: ./.env
+
+  filebrowser:
+    image: hurlenko/filebrowser
+    user: "1000:1000"
+    volumes:
+      - ./external_data:/data
+      - ./filebrowser_config:/config
+    env_file:
+      - .env
+    restart: always
+    expose:
+      - 8080

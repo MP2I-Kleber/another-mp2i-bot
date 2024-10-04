@@ -26,7 +26,7 @@ class PersonalInformation:
         origin: str,
     ) -> None:
         if not any((firstname, lastname, nickname)):
-            raise ValueError("At least one of firstname, lastname or nickname must be set.")  # noqa: TRY003
+            raise ValueError("At least one of firstname, lastname or nickname must be set.")
         self.firstname: str | None = capitalize(firstname) if firstname else None
         self.lastname: str | None = lastname.upper() if lastname else None
         self.nickname: str | None = nickname or None
@@ -62,8 +62,8 @@ def load_personal_informations() -> list[PersonalInformation]:
                 except ValueError as e:
                     logger.warning(__("Row {} is invalid in {}.csv: {}", i + 1, origin, e))
 
-    for csv_file in glob("./resources/personal_informations/*.csv"):
-        if csv_file == "./resources/personal_informations/example.csv":
+    for csv_file in glob("./external_data/personal_informations/*.csv"):
+        if csv_file == "./external_data/personal_informations/example.csv":
             continue
         logger.debug(__("Reading {}", csv_file))
         result.extend(read(csv_file))

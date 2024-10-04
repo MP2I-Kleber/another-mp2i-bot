@@ -17,6 +17,7 @@
 - `docs/` : contient des divers explications.
 - `readme-images/` : contient des images utilisées dans le readme.
 - `resources/` : contient des informations statiques utilisées par le bot.
+- `external_data/` : contient des informations gérées via filebrowser, qui sont utilisées par le bot.
 - `src/` : contient le code source du bot.
 - `/typings` : contient des informations de typage pour certaines dépendances qui n'en ont pas.
 

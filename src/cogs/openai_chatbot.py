@@ -16,7 +16,6 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
-from core.constants import GUILD_ID
 from core.errors import BaseError
 
 if TYPE_CHECKING:
@@ -60,7 +59,7 @@ class ChatBot(Cog):
         try:
             self.openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
         except KeyError:
-            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")  # noqa: TRY002, TRY003
+            raise Exception("OPENAI_API_KEY is not set in the environment variables. The extension cannot be loaded.")  # noqa: TRY002
 
     async def send_chat_completion(
         self,
@@ -96,7 +95,7 @@ class ChatBot(Cog):
 
         answer: str | None = response.choices[0].message.content
         if answer is None:
-            raise BaseError("OpenAI responded with None.")  # noqa: TRY003
+            raise BaseError("OpenAI responded with None.")
         return answer
 
     def clean_content(self, content: str) -> str:
@@ -179,7 +178,7 @@ class ChatBot(Cog):
     async def on_message(self, message: Message) -> None:
         if (
             message.guild is not None
-            and message.guild.id == GUILD_ID
+            and message.guild.id == self.bot.config.guild_id
             and message.author.id != message.guild.me.id
             and (
                 message.guild.me in message.mentions

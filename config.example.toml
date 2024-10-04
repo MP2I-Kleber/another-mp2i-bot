@@ -1,0 +1,15 @@
+guild_id = 1254425991992971395
+birthday_channel_id = 1254425991992971398
+
+washing_machine_state_channel = 1283128932912205898
+carpooling_channel = 1283143859865387048
+
+loaded_extensions = [
+    #
+    "fun",
+    "openai_chatbot",
+    "birthday",
+    "admin",
+    "carpooling",
+    "washingmachines",
+]

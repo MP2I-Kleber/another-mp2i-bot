@@ -1,16 +1,18 @@
-resources/personal_informations/*
-!resources/personal_informations/example.csv
-resources/colloscopes/*
-!resources/colloscopes/example.csv
+external_data/personal_informations/*
+!external_data/personal_informations/example.csv
 data/
-resources/colloscope.csv
+caddy_config/
+filebrowser_config/
+Caddyfile
+config.toml
 
-.vscode/** 
+.vscode/**
 !.vscode/launch.json
 !.vscode/tasks.json
+.fleet/
+
 .ruff_cache
 
-.fleet/
 **/.DS_Store
 
 # Byte-compiled / optimized / DLL files
