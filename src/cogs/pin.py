@@ -16,7 +16,7 @@ class Pin(Cog):
     async def pin(interaction: Interaction, message: Message):
         if message.pinned():
             await message.unpin()
-            await interaction.response.send_message("Message désépinglé.",ephemeral=True)
+            await interaction.response.send_message(f"Message {message.jump_url} désépinglé.", ephemeral=True)
         else:
             await message.pin()
         await interaction.response.defer()
