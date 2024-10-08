@@ -12,4 +12,5 @@ loaded_extensions = [
     "admin",
     "carpooling",
     "washingmachines",
+    "pin",
 ]
