@@ -19,7 +19,7 @@ class Pin(Cog):
             await interaction.response.send_message(f"Message {message.jump_url} désépinglé.", ephemeral=True)
         else:
             await message.pin()
-        	await interaction.response.defer()
+            await interaction.response.defer()
 
 async def setup(bot: FISABot) -> None:
     await bot.add_cog(Pin(bot))
