@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from discord import app_commands, Message
+from discord import Message, app_commands
 from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 
 if TYPE_CHECKING:
