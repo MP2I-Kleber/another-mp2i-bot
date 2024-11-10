@@ -1,7 +1,10 @@
+# ruff: noqa: S311
+
 from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import random
 from functools import partial
 from typing import TYPE_CHECKING, Any, Self, cast
 from zoneinfo import ZoneInfo
@@ -42,7 +45,7 @@ class Birthday(Cog):
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
         if self.is_birthday(message.author.id):  # add 🎉 reaction if birthday
-            await message.add_reaction("🎉")
+            await message.add_reaction(random.choice(("🎉", "🧓")))
 
     def is_birthday(self, user_id: int) -> bool:
         """Tell if a user has birthday or not.
@@ -124,7 +127,7 @@ class Birthday(Cog):
                 else:
                     send_method = self.general_channel.send
 
-                await send_method(f"Eh ! {pi.display} a anniversaire ! Souhaitez-le lui !")
+                await send_method(f"Eh ! {pi.display} a son anniversaire ! Souhaitez-le lui 🫵 !")
 
 
 class TellHappyBirthday(ui.View):
@@ -147,7 +150,7 @@ class TellHappyBirthday(ui.View):
             users=True,
         )
         await inter.response.send_message(
-            f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> !",
+            f"{inter.user.display_name} souhaite un joyeux anniversaire à <@{self.user_id}> 😁🎉! L'âge de la retraite arrive bientôt 😉",
             allowed_mentions=mentions,
         )
 
