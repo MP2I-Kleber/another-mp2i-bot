@@ -8,11 +8,11 @@ from discord.ext.commands import Cog  # pyright: ignore[reportMissingTypeStubs]
 if TYPE_CHECKING:
     from discord import Interaction
 
-    from bot import FISABot
+    from bot import MP2IBot
 
 
 class Pin(Cog):
-    def __init__(self, bot: FISABot) -> None:
+    def __init__(self, bot: MP2IBot) -> None:
         self.bot = bot
 
         self.bot.tree.add_command(
@@ -31,5 +31,5 @@ class Pin(Cog):
             await interaction.response.send_message(f"Message {message.jump_url} épinglé.", ephemeral=True)
 
 
-async def setup(bot: FISABot) -> None:
+async def setup(bot: MP2IBot) -> None:
     await bot.add_cog(Pin(bot))
