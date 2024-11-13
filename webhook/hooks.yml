@@ -1,0 +1,10 @@
+- id: deploy
+  execute-command: "/app/bin/watchtower-update.sh"
+  command-working-directory: "/app"
+  trigger-rule:
+    match:
+      type: "value"
+      value: '{{ getenv "DEPLOY_SECRET" }}'
+      parameter:
+        source: "payload"
+        name: "token"

@@ -11,4 +11,5 @@ loaded_extensions = [
     "colloscope_helper",
     "birthday",
     "admin",
+    "pin",
 ]

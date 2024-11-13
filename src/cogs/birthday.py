@@ -124,7 +124,7 @@ class Birthday(Cog):
                 else:
                     send_method = self.general_channel.send
 
-                await send_method(f"Eh ! {pi.display} a anniversaire ! Souhaitez-le lui !")
+                await send_method(f"Eh ! {pi.display} a son anniversaire ! Souhaitez-le lui 🫵 !")
 
 
 class TellHappyBirthday(ui.View):
