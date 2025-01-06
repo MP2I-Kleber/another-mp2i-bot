@@ -1,0 +1,12 @@
+services:
+  webhook:
+    hostname: mp2i-bot-webhook
+    image: lwlook/webhook
+    expose:
+      - 9000
+    volumes:
+      - ./webhook:/app/webhook
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    command: -verbose -hooks=/app/webhook/hooks.yml -hotreload -template

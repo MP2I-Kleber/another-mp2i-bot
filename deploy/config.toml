@@ -1,0 +1,15 @@
+guild_id = 1015136740127821885
+birthday_channel_id = 1015172827650998352
+
+loaded_extensions = [
+    "weather_icon",
+    "cts",
+    "restauration",
+    "fun",
+    "mp2i",
+    "openai_chatbot",
+    "colloscope_helper",
+    "birthday",
+    "admin",
+    "pin",
+]
