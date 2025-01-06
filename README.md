@@ -29,7 +29,7 @@ Il est tout a fait possible de contribuer au projet, d'ajouter vos propres idée
 Je m'adresse principalement aux MP2I de Kléber, si vous avez un tant soit peu de connaissance en python, jetez un coup d'œil au code, et demandez-vous si vous ne pouvez pas y ajouter quelque chose 😉
 
 Pour contribuer, le moyen le plus simple est de créer un fork du projet :
-![Alt text](readme-images/fork.png)
+![Alt text](.github/assets/fork.png)
 Vous pouvez aussi demander l'accès à l'organisation, contactez moi sur Discord: @airo.pi
 
 #### Si vous savez utiliser git :
@@ -41,7 +41,7 @@ Vous pouvez aussi demander l'accès à l'organisation, contactez moi sur Discord
 #### Si vous ne connaissez pas git :
 
 - dans vos projets github, allez sur votre fork du projet :
-  ![Alt text](readme-images/repositories.png)
+  ![Alt text](.github/assets/repositories.png)
 - sur la page du projet, changez dans la barre de recherche le lien, modifiant "https://github.**com**/user/another-mp2i-bot/" en "https://github.**dev**/user/another-mp2i-bot/"
 - vous pouvez alors faire vos modifications sur un éditeur de code en ligne
 - une fois les changements fait, faites un commit de vos changement, puis ouvrez une Pull Request.
