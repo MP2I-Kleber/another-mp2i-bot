@@ -3,7 +3,6 @@ name: "another-mp2i-bot"
 services:
   mp2i-bot:
     container_name: mp2i-bot
-    user: 0:0
     init: true
     tty: true
     restart: no

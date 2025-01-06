@@ -81,3 +81,14 @@ docker compose up
 
 Et le bot devrait démarrer.
 Sinon une execution python classique est possible.
+
+## Déployer
+
+Copiez le contenu de `deploy/` sur votre serveur. Vous pouvez utiliser l'URL suivante:  
+```
+https://downgit.github.io/#/home?url=https://github.com/MP2I-Kleber/another-mp2i-bot/tree/master/deploy
+```
+
+Modifiez le contenu du `.env`, du `config.toml`, du `compose.yml` selon vos besoins.  
+Ces fichiers sont juste donnés en exemples: vous pouvez déployer le bot de la manière que vous souhaitez.  
+Par exemple, la partie "webhook" est seulement utile pour de déploiement continue, vous n'en aurez sûrement pas besoin.
