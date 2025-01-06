@@ -1,13 +1,11 @@
 services:
   filebrowser:
-    hostname: mp2i-bot-filebrowser
     image: hurlenko/filebrowser
     user: "1000:1000"
     restart: always
     expose:
       - 8080
     volumes:
-      - ${PWD}/external_data:/data
-      - ${PWD}/filebrowser_config:/config
+      - ./filebrowser_config/:/config/
     env_file:
-      - ${PWD}/.env
+      - .env

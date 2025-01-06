@@ -1,10 +1,5 @@
 name: "another-mp2i-bot"
 
-include:
-  - ./compose.caddy.yml
-  - ./compose.filebrowser.yml
-  - ./compose.webhook.yml
-
 services:
   mp2i-bot:
     container_name: mp2i-bot
@@ -13,22 +8,35 @@ services:
     init: true
     tty: true
     restart: no
-    ports:
-      - 5678:5678
     env_file:
       - .env
     volumes:
-      - $PWD/data:/app/data
-      - $PWD/config.toml:/app/config.toml
-      - $PWD/external_data:/app/external_data
-    develop:
-      watch:
-        - action: sync
-          path: ${PWD}/src
-          target: /app
-        - action: rebuild
-          path: ${PWD}/uv.lock
-        - action: rebuild
-          path: ${PWD}/config.toml
-        - action: rebuild
-          path: ${PWD}/.env
+      - ./data/:/app/data/
+      - ./config.toml:/app/config.toml
+      - ./external_data/:/app/external_data/
+  filebrowser:
+    extends:
+      file: ./compose.filebrowser.yml
+      service: filebrowser
+    hostname: mp2i-bot-filebrowser
+    networks:
+      - caddy
+    volumes:
+      - ./external_data:/data
+  webhook:
+    extends:
+      file: ./compose.webhook.yml
+      service: webhook
+    hostname: mp2i-bot-webhook
+    networks:
+      - caddy
+  caddy:
+    extends:
+      file: ./compose.caddy.yml
+      service: caddy
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    name: caddy
