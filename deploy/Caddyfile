@@ -1,0 +1,7 @@
+https://fb.example.com:443 {
+	reverse_proxy http://filebrowser:8080
+}
+
+https://wh.example.com:443 {
+	reverse_proxy http://mp2i-bot-webhook:9000
+}

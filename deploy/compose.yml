@@ -1,15 +1,18 @@
 name: "another-mp2i-bot"
 
+include:
+  - ./compose.caddy.yml
+  - ./compose.filebrowser.yml
+  - ./compose.webhook.yml
+
 services:
   mp2i-bot:
     container_name: mp2i-bot
+    image: ghcr.io/mp2i-kleber/another-mp2i-bot:master
+    user: "1000:1000"
     init: true
     tty: true
     restart: no
-    build:
-      target: debug
-      context: .
-      dockerfile: $PWD/Dockerfile
     ports:
       - 5678:5678
     env_file:
